@@ -1,5 +1,7 @@
+import Wishlist from "./components/Wishlist";
+
 function App() {
-  return <p>Hello World</p>;
+  return <Wishlist />;
 }
 
 export default App;
