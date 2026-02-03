@@ -1,5 +1,4 @@
 import styles from "./Wishlist.module.css";
-import { createPortal } from "react-dom";
 import { useState } from "react";
 import type { Item } from "../../types";
 import { items as initialItems } from "../../data";
@@ -43,18 +42,21 @@ const Wishlist = () => {
   return (
     <div className={styles.container}>
       <h1>Wishlist</h1>
-      <button onClick={() => setShowModal(true)}>Add Item</button>
+      <button
+        onClick={() => setShowModal(true)}
+        data-testid="wishlist-add-button"
+      >
+        Add Item
+      </button>
       <ItemsTable items={items} onEdit={handleEdit} onDelete={handleDelete} />
-      {showModal &&
-        createPortal(
-          <AddItemModal
-            item={editingItem || undefined}
-            onAdd={handleAdd}
-            onUpdate={handleUpdate}
-            onClose={() => setShowModal(false)}
-          />,
-          document.body,
-        )}
+      {showModal && (
+        <AddItemModal
+          item={editingItem || undefined}
+          onAdd={handleAdd}
+          onUpdate={handleUpdate}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -28,6 +28,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
       ? { name: item.name, price: item.price, link: item.link }
       : defaultFormData,
   );
+  const [error, setError] = useState<boolean>(false);
 
   const isEditing = !!item;
   const title = isEditing ? "Edit Item" : "New Item";
@@ -35,12 +36,17 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
 
   const handleOnSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    if (!formData.name || !formData.price || !formData.link) return;
+    if (!formData.name || !formData.price || !formData.link) {
+      setError(true);
+      return;
+    }
 
     if (isEditing && item) {
       const updatedItem: Item = { ...item, ...formData };
 
       onUpdate(updatedItem);
+
+      onClose();
 
       return;
     }
@@ -59,17 +65,29 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
   };
   return (
     <Modal onClose={onClose}>
-      <form onSubmit={handleOnSubmit} className={styles.form}>
+      <form onSubmit={handleOnSubmit} className={styles.form} noValidate>
         <h2>{title}</h2>
+        {error && (
+          <div
+            role="alert"
+            className={styles.formError}
+            data-testid="error-message"
+          >
+            Please fill all fields
+          </div>
+        )}
         <div className={styles.field}>
           <label htmlFor="item-name">Name</label>
           <input
             type="text"
             id="item-name"
+            data-testid="add-item-modal-name-input"
             value={formData.name}
             onChange={(event) =>
               setFormData({ ...formData, name: event.target.value })
             }
+            onBlur={() => setError(false)}
+            required
           />
         </div>
         <div className={styles.field}>
@@ -77,10 +95,13 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
           <input
             type="text"
             id="item-price"
+            data-testid="add-item-modal-price-input"
             value={formData.price}
             onChange={(event) =>
               setFormData({ ...formData, price: event.target.value })
             }
+            onBlur={() => setError(false)}
+            required
           />
         </div>
         <div className={styles.field}>
@@ -88,13 +109,18 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
           <input
             type="text"
             id="item-link"
+            data-testid="add-item-modal-link-input"
             value={formData.link}
             onChange={(event) =>
               setFormData({ ...formData, link: event.target.value })
             }
+            onBlur={() => setError(false)}
+            required
           />
         </div>
-        <button type="submit">{buttonText}</button>
+        <button type="submit" data-testid="add-item-modal-submit-button">
+          {buttonText}
+        </button>
       </form>
     </Modal>
   );

@@ -11,7 +11,7 @@ const ItemsTable = ({ items, onEdit, onDelete }: Props) => {
   return (
     <table className={styles.table}>
       <thead>
-        <tr>
+        <tr data-testid="items-table-header-row">
           <th aria-label="Preview" />
           <th>Item Name</th>
           <th>Price</th>
@@ -22,27 +22,42 @@ const ItemsTable = ({ items, onEdit, onDelete }: Props) => {
       </thead>
       <tbody>
         {items.map((item) => (
-          <tr key={item.id}>
+          <tr key={item.id} data-testid="items-table-body-row">
             <td>{item.image}</td>
             <td>{item.name}</td>
             <td>{item.price}</td>
             <td>
-              <select defaultValue={item.status}>
+              <select
+                defaultValue={item.status}
+                data-testid="items-table-status"
+              >
                 <option value="want">Want</option>
                 <option value="bought">Bought</option>
                 <option value="archived">Archived</option>
               </select>
             </td>
             <td>
-              <a href={item.link} target="_blank">
+              <a
+                href={item.link}
+                target="_blank"
+                data-testid="items-table-link"
+              >
                 Open
               </a>
             </td>
             <td>
-              <button type="button" onClick={() => onEdit(item.id)}>
+              <button
+                type="button"
+                onClick={() => onEdit(item.id)}
+                data-testid="items-table-edit-button"
+              >
                 Edit
               </button>
-              <button type="button" onClick={() => onDelete(item.id)}>
+              <button
+                type="button"
+                onClick={() => onDelete(item.id)}
+                data-testid="items-table-delete-button"
+              >
                 Delete
               </button>
             </td>
