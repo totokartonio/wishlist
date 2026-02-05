@@ -23,6 +23,7 @@ const Modal = ({ onClose, children }: Props) => {
             onClick={onClose}
             className={styles.closeButton}
             data-testid="modal-close-button"
+            aria-label="Close modal"
           >
             <XIcon size={18} />
           </button>

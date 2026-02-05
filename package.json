@@ -1,42 +1,30 @@
 {
-  "name": "wishlist",
+  "name": "wishlist-monorepo",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
-  "bin": {
-    "create-component": "./create-component.ts"
-  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "test": "vitest"
-  },
-  "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.2",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "dev": "bun run --filter \"./apps/*\" dev",
+    "dev:web": "bun --filter web dev",
+    "dev:api": "bun --filter api dev",
+    "build": "bun run --filter \"./apps/*\" build",
+    "lint": "bun run --filter \"./apps/*\" lint",
+    "test": "bun run --filter \"./apps/*\" test",
+    "db:generate": "bun --filter @wishlist/database db:generate",
+    "db:push": "bun --filter @wishlist/database db:push",
+    "db:migrate": "bun --filter @wishlist/database db:migrate",
+    "db:studio": "bun --filter @wishlist/database db:studio",
+    "db:seed": "bun --filter @wishlist/database db:seed"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.10.1",
-    "@types/react": "^19.2.10",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "happy-dom": "^20.5.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
-    "vitest": "^4.0.18"
+    "@types/pg": "^8.16.0",
+    "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "pg": "^8.18.0"
   }
 }

@@ -1,7 +1,7 @@
 import styles from "./AddItemModal.module.css";
 import { useState, type SubmitEventHandler } from "react";
-import { CURRENCIES } from "../../../../types";
-import type { Currency, Item } from "../../../../types";
+import { CURRENCIES } from "@wishlist/types";
+import type { Currency, Item } from "@wishlist/types";
 import Modal from "../../../ui/Modal";
 
 type FormData = {

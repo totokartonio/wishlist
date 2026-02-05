@@ -4,12 +4,13 @@ export const ITEM_STATUSES = [
   "archived",
   "reserved",
 ] as const;
+
 export const CURRENCIES = ["USD", "EUR", "RUB"] as const;
 
-type ItemStatus = (typeof ITEM_STATUSES)[number];
-type Currency = (typeof CURRENCIES)[number];
+export type ItemStatus = (typeof ITEM_STATUSES)[number];
+export type Currency = (typeof CURRENCIES)[number];
 
-type Item = {
+export type Item = {
   id: string;
   image: string;
   name: string;
@@ -19,4 +20,5 @@ type Item = {
   link: string;
 };
 
-export type { Item, ItemStatus, Currency };
+export type CreateItemDto = Omit<Item, "id">;
+export type UpdateItemDto = Partial<CreateItemDto>;
