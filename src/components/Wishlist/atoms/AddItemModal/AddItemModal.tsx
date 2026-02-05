@@ -1,11 +1,13 @@
 import styles from "./AddItemModal.module.css";
 import { useState, type SubmitEventHandler } from "react";
-import type { Item } from "../../../../types";
+import { CURRENCIES } from "../../../../types";
+import type { Currency, Item } from "../../../../types";
 import Modal from "../../../ui/Modal";
 
 type FormData = {
   name: string;
-  price: string;
+  price: number;
+  currency: Currency;
   link: string;
 };
 
@@ -18,14 +20,20 @@ type Props = {
 
 const defaultFormData: FormData = {
   name: "",
-  price: "",
+  price: 0,
+  currency: "USD",
   link: "",
 };
 
 const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
   const [formData, setFormData] = useState(
     item
-      ? { name: item.name, price: item.price, link: item.link }
+      ? {
+          name: item.name,
+          price: item.price,
+          currency: item.currency,
+          link: item.link,
+        }
       : defaultFormData,
   );
   const [error, setError] = useState<boolean>(false);
@@ -93,16 +101,40 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
         <div className={styles.field}>
           <label htmlFor="item-price">Price</label>
           <input
-            type="text"
+            type="number"
+            min={0}
+            step={0.01}
             id="item-price"
             data-testid="add-item-modal-price-input"
             value={formData.price}
             onChange={(event) =>
-              setFormData({ ...formData, price: event.target.value })
+              setFormData({ ...formData, price: Number(event.target.value) })
             }
             onBlur={() => setError(false)}
             required
           />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="item-currency">Currency</label>
+          <select
+            id="item-currency"
+            data-testid="add-item-modal-currency-select"
+            value={formData.currency}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                currency: event.target.value as Currency,
+              })
+            }
+            onBlur={() => setError(false)}
+            required
+          >
+            {CURRENCIES.map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+          </select>
         </div>
         <div className={styles.field}>
           <label htmlFor="item-link">Link</label>

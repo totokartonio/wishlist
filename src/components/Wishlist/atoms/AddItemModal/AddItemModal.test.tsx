@@ -19,10 +19,12 @@ describe("AddItemModal", () => {
 
     const nameInput = screen.getByTestId("add-item-modal-name-input");
     const priceInput = screen.getByTestId("add-item-modal-price-input");
+    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
     const linkInput = screen.getByTestId("add-item-modal-link-input");
 
     expect(nameInput).toHaveValue("");
-    expect(priceInput).toHaveValue("");
+    expect(priceInput).toHaveValue(0);
+    expect(currencySelect).toHaveValue("USD");
     expect(linkInput).toHaveValue("");
   });
 
@@ -89,25 +91,29 @@ describe("AddItemModal", () => {
 
     const nameInput = screen.getByTestId("add-item-modal-name-input");
     const priceInput = screen.getByTestId("add-item-modal-price-input");
+    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
     const linkInput = screen.getByTestId("add-item-modal-link-input");
     const submitButton = screen.getByTestId("add-item-modal-submit-button");
 
     await user.type(nameInput, "Sony headphones");
-    await user.type(priceInput, "100$");
+    await user.type(priceInput, "100");
+    await user.selectOptions(currencySelect, "USD");
     await user.type(linkInput, "https://amazon.de");
     await user.click(submitButton);
 
     expect(mockOnAdd).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Sony headphones",
-        price: "100$",
+        price: 100,
+        currency: "USD",
         link: "https://amazon.de",
         status: "want",
       }),
     );
 
     expect(nameInput).toHaveValue("");
-    expect(priceInput).toHaveValue("");
+    expect(priceInput).toHaveValue(0);
+    expect(currencySelect).toHaveValue("USD");
     expect(linkInput).toHaveValue("");
 
     expect(mockOnClose).toHaveBeenCalled();
@@ -122,7 +128,8 @@ describe("AddItemModal", () => {
     const existingItem = {
       id: "123",
       name: "Old Name",
-      price: "50$",
+      price: 50,
+      currency: "USD" as const,
       link: "https://old.de",
       image: "Image",
       status: "want" as const,
@@ -139,20 +146,24 @@ describe("AddItemModal", () => {
 
     const nameInput = screen.getByTestId("add-item-modal-name-input");
     const priceInput = screen.getByTestId("add-item-modal-price-input");
+    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
     const linkInput = screen.getByTestId("add-item-modal-link-input");
 
     expect(nameInput).toHaveValue("Old Name");
-    expect(priceInput).toHaveValue("50$");
+    expect(priceInput).toHaveValue(50);
+    expect(currencySelect).toHaveValue("USD");
     expect(linkInput).toHaveValue("https://old.de");
 
     await user.clear(nameInput);
     await user.type(nameInput, "New Name");
+    await user.selectOptions(currencySelect, "EUR");
     await user.click(screen.getByTestId("add-item-modal-submit-button"));
 
     expect(mockOnUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "New Name",
-        price: "50$",
+        price: 50,
+        currency: "EUR",
         link: "https://old.de",
         status: "want",
       }),

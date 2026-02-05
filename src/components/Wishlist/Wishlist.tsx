@@ -1,6 +1,6 @@
 import styles from "./Wishlist.module.css";
 import { useState } from "react";
-import type { Item } from "../../types";
+import type { Item, ItemStatus } from "../../types";
 import { items as initialItems } from "../../data";
 import AddItemModal from "./atoms/AddItemModal";
 import ItemsTable from "./atoms/ItemsTable";
@@ -39,6 +39,14 @@ const Wishlist = () => {
     setShowModal(true);
   };
 
+  const handleChangeStatus = (id: string, status: ItemStatus) => {
+    const newItems = items.map((item) =>
+      item.id === id ? { ...item, status: status } : item,
+    );
+
+    setItems(newItems);
+  };
+
   return (
     <div className={styles.container}>
       <h1>Wishlist</h1>
@@ -48,7 +56,12 @@ const Wishlist = () => {
       >
         Add Item
       </button>
-      <ItemsTable items={items} onEdit={handleEdit} onDelete={handleDelete} />
+      <ItemsTable
+        items={items}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onChangeStatus={handleChangeStatus}
+      />
       {showModal && (
         <AddItemModal
           item={editingItem || undefined}
