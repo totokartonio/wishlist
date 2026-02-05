@@ -9,7 +9,8 @@ describe("ItemsTable", () => {
     {
       id: "1",
       name: "Sony headphones",
-      price: "100$",
+      price: 100,
+      currency: "EUR",
       link: "https://amazon.de",
       image: "Image",
       status: "want" as const,
@@ -17,7 +18,8 @@ describe("ItemsTable", () => {
     {
       id: "2",
       name: "USB Cable",
-      price: "10$",
+      price: 10,
+      currency: "USD",
       link: "https://ebay.de",
       image: "Image",
       status: "bought" as const,
@@ -27,20 +29,22 @@ describe("ItemsTable", () => {
   test("show items in table", () => {
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
     //Text
     expect(screen.getByText("Sony headphones")).toBeInTheDocument();
-    expect(screen.getByText("100$")).toBeInTheDocument();
+    expect(screen.getByText("€100")).toBeInTheDocument();
     expect(screen.getByText("USB Cable")).toBeInTheDocument();
-    expect(screen.getByText("10$")).toBeInTheDocument();
+    expect(screen.getByText("$10")).toBeInTheDocument();
 
     //Status
     const statusSelects = screen.getAllByTestId("items-table-status");
@@ -58,12 +62,14 @@ describe("ItemsTable", () => {
   test("renders table headers", () => {
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
@@ -78,12 +84,14 @@ describe("ItemsTable", () => {
     const user = userEvent.setup();
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
@@ -97,12 +105,14 @@ describe("ItemsTable", () => {
     const user = userEvent.setup();
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
@@ -115,12 +125,14 @@ describe("ItemsTable", () => {
   test("renders correct number of rows", () => {
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
@@ -131,9 +143,15 @@ describe("ItemsTable", () => {
   test("renders empty table when no items", () => {
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
-      <ItemsTable items={[]} onEdit={mockOnEdit} onDelete={mockOnDelete} />,
+      <ItemsTable
+        items={[]}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
+      />,
     );
 
     expect(screen.getByText("Item Name")).toBeInTheDocument();
@@ -148,12 +166,14 @@ describe("ItemsTable", () => {
     const user = userEvent.setup();
     const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
+    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
+        onChangeStatus={mockOnChangeStatus}
       />,
     );
 
@@ -162,6 +182,8 @@ describe("ItemsTable", () => {
     expect(statusSelects[1]).toHaveValue("bought");
 
     await user.selectOptions(statusSelects[0], "bought");
-    expect(statusSelects[0]).toHaveValue("bought");
+
+    expect(mockOnChangeStatus).toHaveBeenCalledTimes(1);
+    expect(mockOnChangeStatus).toHaveBeenCalledWith("1", "bought");
   });
 });

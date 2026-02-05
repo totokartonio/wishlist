@@ -8,7 +8,8 @@ vi.mock("../../data", () => ({
     {
       id: "1",
       name: "Existing Item",
-      price: "50$",
+      price: 50,
+      currency: "USD" as const,
       link: "https://example.de",
       image: "Image",
       status: "want" as const,
@@ -47,7 +48,11 @@ describe("Wishlist", () => {
       screen.getByTestId("add-item-modal-name-input"),
       "New Headphones",
     );
-    await user.type(screen.getByTestId("add-item-modal-price-input"), "150$");
+    await user.type(screen.getByTestId("add-item-modal-price-input"), "150");
+    await user.selectOptions(
+      screen.getByTestId("add-item-modal-currency-select"),
+      "EUR",
+    );
     await user.type(
       screen.getByTestId("add-item-modal-link-input"),
       "https://new.de",
@@ -56,7 +61,7 @@ describe("Wishlist", () => {
     await user.click(screen.getByTestId("add-item-modal-submit-button"));
 
     expect(screen.getByText("New Headphones")).toBeInTheDocument();
-    expect(screen.getByText("150$")).toBeInTheDocument();
+    expect(screen.getByText("€150")).toBeInTheDocument();
 
     expect(screen.queryByText("New Item")).not.toBeInTheDocument();
   });
@@ -144,5 +149,20 @@ describe("Wishlist", () => {
     expect(screen.getByText("Status")).toBeInTheDocument();
     expect(screen.getByText("Link")).toBeInTheDocument();
     expect(screen.getByText("Actions")).toBeInTheDocument();
+  });
+
+  test("changes item status", async () => {
+    const user = userEvent.setup();
+
+    render(<Wishlist />);
+
+    const statusSelects = screen.getAllByTestId("items-table-status");
+    expect(statusSelects[0]).toHaveValue("want");
+
+    await user.selectOptions(statusSelects[0], "bought");
+
+    expect(screen.getAllByTestId("items-table-status")[0]).toHaveValue(
+      "bought",
+    );
   });
 });
