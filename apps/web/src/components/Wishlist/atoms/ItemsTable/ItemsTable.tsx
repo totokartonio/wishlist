@@ -4,7 +4,7 @@ import {
   type Item,
   type Currency,
   type ItemStatus,
-} from "../../../../types";
+} from "@wishlist/types";
 import styles from "./ItemsTable.module.css";
 
 type Props = {
@@ -61,6 +61,7 @@ const ItemsTable = ({ items, onEdit, onDelete, onChangeStatus }: Props) => {
                 href={item.link}
                 target="_blank"
                 data-testid="items-table-link"
+                rel="noopener noreferrer"
               >
                 Open
               </a>

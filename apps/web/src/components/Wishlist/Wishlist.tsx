@@ -1,6 +1,6 @@
 import styles from "./Wishlist.module.css";
 import { useState } from "react";
-import type { Item, ItemStatus } from "../../types";
+import type { Item, ItemStatus } from "@wishlist/types";
 import { items as initialItems } from "../../data";
 import AddItemModal from "./atoms/AddItemModal";
 import ItemsTable from "./atoms/ItemsTable";
