@@ -20,11 +20,14 @@
     "db:seed": "bun --filter @wishlist/database db:seed"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.2.3",
     "@types/pg": "^8.16.0",
-    "typescript": "~5.9.3"
+    "prisma": "^7.4.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@prisma/adapter-libsql": "^7.4.0",
+    "@prisma/client": "^7.4.0",
     "pg": "^8.18.0"
   }
 }
