@@ -6,8 +6,10 @@
     "dev": "bun run --hot src/index.ts"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "^1.6.2",
     "@wishlist/database": "workspace:*",
     "@wishlist/types": "workspace:*",
+    "better-auth": "^1.6.2",
     "hono": "^4.11.9"
   },
   "devDependencies": {
