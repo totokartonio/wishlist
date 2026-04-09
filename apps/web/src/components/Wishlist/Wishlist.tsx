@@ -1,37 +1,45 @@
 import styles from "./Wishlist.module.css";
 import { useState } from "react";
 import type { Item, ItemStatus } from "@wishlist/types";
-import { items as initialItems } from "../../data";
 import AddItemModal from "./atoms/AddItemModal";
 import ItemsTable from "./atoms/ItemsTable";
+import { useItems } from "../../hooks/useItems";
+import { useCreateItem } from "../../hooks/useCreateItem";
+import { useUpdateItem } from "../../hooks/useUpdateItem";
+import { useDeleteItem } from "../../hooks/useDeleteItem";
 
 const Wishlist = () => {
-  const [items, setItems] = useState<Item[]>(initialItems);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  const { data: items = [], isLoading, isError } = useItems();
+  const { mutate: createItem } = useCreateItem();
+  const { mutate: updateItem } = useUpdateItem();
+  const { mutate: deleteItem } = useDeleteItem();
 
   const editingItem = editingItemId
     ? items.find((item) => item.id === editingItemId)
     : null;
 
   const handleAdd = (newItem: Item) => {
-    const newItems = [...items, newItem];
-    setItems(newItems);
+    createItem(newItem, { onSuccess: () => setShowModal(false) });
   };
 
   const handleUpdate = (updatedItem: Item) => {
-    const updatedItems = items.map((item) =>
-      item.id === updatedItem.id ? updatedItem : item,
+    if (!editingItemId) return;
+    updateItem(
+      { id: editingItemId, dto: updatedItem },
+      {
+        onSuccess: () => {
+          setShowModal(false);
+          setEditingItemId(null);
+        },
+      },
     );
-    setItems(updatedItems);
-    setEditingItemId(null);
-    setShowModal(false);
   };
 
   const handleDelete = (id: string) => {
-    const newItems = items.filter((item) => item.id !== id);
-
-    setItems(newItems);
+    deleteItem(id);
   };
 
   const handleEdit = (id: string) => {
@@ -40,12 +48,11 @@ const Wishlist = () => {
   };
 
   const handleChangeStatus = (id: string, status: ItemStatus) => {
-    const newItems = items.map((item) =>
-      item.id === id ? { ...item, status: status } : item,
-    );
-
-    setItems(newItems);
+    updateItem({ id, dto: { status } });
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Something went wrong.</p>;
 
   return (
     <div className={styles.container}>

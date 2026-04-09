@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, test, expect, vi } from "vitest";
 import { ItemsTable } from "./ItemsTable";
-import type { Item } from "../../../../types";
+import type { Item } from "@wishlist/types";
 
 describe("ItemsTable", () => {
   const mockItems: Item[] = [
