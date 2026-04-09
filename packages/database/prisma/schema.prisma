@@ -10,6 +10,35 @@ datasource db {
   provider = "sqlite"
 }
 
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //relations
+  ownedWishlists Wishlist[]       @relation("OwnedWishlists")
+  collaborations Collaborator[]   @relation("CollaboratorOnWishlists")
+}
+
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  name      String
+  description     String?
+  visibility    String   @default("private")
+  ownerId      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relations
+  owner         User           @relation("OwnedWishlists", fields: [ownerId], references: [id])
+  items         Item[]
+  collaborators Collaborator[]
+  inviteLinks   InviteLink[]
+}
+
 model Item {
   id        String   @id @default(uuid())
   name      String
@@ -18,6 +47,34 @@ model Item {
   status    String   @default("want")
   link      String
   image     String   @default("Image")
+  wishlistId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // relations
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+}
+
+model Collaborator {
+  @@unique([wishlistId, userId])
+  id        String   @id @default(uuid())
+  wishlistId String
+  userId      String
+  role      String @default("viewer")
+  createdAt DateTime @default(now())
+
+  // relations
+  user  User  @relation("CollaboratorOnWishlists", fields: [userId], references: [id])
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+}
+
+model InviteLink {
+  id        String   @id @default(uuid())
+  wishlistId String
+  token String @unique @default(uuid())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // relations
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
 }
