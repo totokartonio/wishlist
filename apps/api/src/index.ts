@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { prisma } from "@wishlist/database";
+import { auth } from "./auth";
 import type { CreateItemDto, UpdateItemDto } from "@wishlist/types";
 
 // Initialize Hono app
@@ -15,6 +16,9 @@ app.use(
   "/*",
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    exposeHeaders: ["Set-Cookie"],
     credentials: true,
   }),
 );
@@ -25,6 +29,19 @@ app.use("*", async (c, next) => {
   await next();
   const ms = Date.now() - start;
   console.log(`${c.req.method} ${c.req.url} - ${ms}ms`);
+});
+
+app.post("/api/auth/*", async (c, next) => {
+  try {
+    return await next();
+  } catch (err) {
+    console.error("Auth error:", err);
+    throw err;
+  }
+});
+
+app.on(["POST", "GET"], "/api/auth/**", (c) => {
+  return auth.handler(c.req.raw);
 });
 
 // ============================================================
@@ -131,6 +148,7 @@ app.post("/api/items", async (c) => {
         status: body.status || "want",
         link: body.link,
         image: body.image || "Image",
+        wishlistId: "649a5342-aa64-49e6-acbc-cad83a1d97ee", // TODO: replace with real wishlistId
       },
     });
 
