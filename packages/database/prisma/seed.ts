@@ -8,6 +8,27 @@ async function main() {
   console.log("🌱 Seeding database...");
 
   await prisma.item.deleteMany();
+  await prisma.collaborator.deleteMany();
+  await prisma.wishlist.deleteMany();
+  await prisma.user.deleteMany();
+
+  const user = await prisma.user.create({
+    data: {
+      id: "test-user",
+      email: "test@test.com",
+      name: "Toto Kartonio",
+    },
+  });
+
+  const wishlists = await Promise.all([
+    prisma.wishlist.create({
+      data: {
+        name: "Test Wishlist",
+        description: "Test wishlist",
+        ownerId: "test-user",
+      },
+    }),
+  ]);
 
   const items = await Promise.all([
     prisma.item.create({
@@ -18,6 +39,7 @@ async function main() {
         status: "want",
         link: "https://www.amazon.de/dp/B09XS7JWHH",
         image: "Image",
+        wishlistId: wishlists[0].id,
       },
     }),
     prisma.item.create({
@@ -28,6 +50,7 @@ async function main() {
         status: "want",
         link: "https://www.apple.com/macbook-pro",
         image: "Image",
+        wishlistId: wishlists[0].id,
       },
     }),
     prisma.item.create({
@@ -38,6 +61,7 @@ async function main() {
         status: "bought",
         link: "https://www.keychron.com",
         image: "Image",
+        wishlistId: wishlists[0].id,
       },
     }),
   ]);
