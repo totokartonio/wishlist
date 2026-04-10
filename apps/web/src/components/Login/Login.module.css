@@ -1,0 +1,11 @@
+.error {
+  color: tomato;
+}
+
+.info {
+  color: goldenrod;
+}
+
+.success {
+  color: turquoise;
+}
