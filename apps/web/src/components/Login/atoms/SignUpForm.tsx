@@ -81,11 +81,13 @@ const SignUpForm = ({
             aria-describedby={
               fieldErrors.password ? "password-error" : undefined
             }
+            data-testid="password-input"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? "Hide password" : "Show password"}
+            data-testid="show-password"
           >
             Show password
           </button>
@@ -99,7 +101,7 @@ const SignUpForm = ({
       </form>
       <p>
         Already have an account?{" "}
-        <button type="button" onClick={onChangeMode}>
+        <button type="button" onClick={onChangeMode} data-testid="change-mode">
           Sign in
         </button>
       </p>

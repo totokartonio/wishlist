@@ -55,6 +55,7 @@ const SignInForm = ({
             aria-describedby={
               fieldErrors.password ? "password-error" : undefined
             }
+            data-testid="password-input"
           />
           {fieldErrors.password && (
             <span id="password-error" role="alert">
@@ -64,10 +65,12 @@ const SignInForm = ({
         </label>
         <button type="submit">Sign In</button>
       </form>
-      <a href="#">Forgot password?</a>
+      <a href="#" data-testid="change-password">
+        Forgot password?
+      </a>
       <p>
         Don't have account?{" "}
-        <button type="button" onClick={onChangeMode}>
+        <button type="button" onClick={onChangeMode} data-testid="change-mode">
           Sign up
         </button>
       </p>
