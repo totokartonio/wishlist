@@ -1,18 +1,22 @@
 import styles from "./Wishlist.module.css";
 import { useState } from "react";
-import type { Item, ItemStatus } from "@wishlist/types";
+import type { CreateItemDto, Item, ItemStatus } from "@wishlist/types";
 import AddItemModal from "./atoms/AddItemModal";
 import ItemsTable from "./atoms/ItemsTable";
-import { useItems } from "../../hooks/useItems";
-import { useCreateItem } from "../../hooks/useCreateItem";
-import { useUpdateItem } from "../../hooks/useUpdateItem";
-import { useDeleteItem } from "../../hooks/useDeleteItem";
+import { useItems } from "../../hooks/items/useItems";
+import { useCreateItem } from "../../hooks/items/useCreateItem";
+import { useUpdateItem } from "../../hooks/items/useUpdateItem";
+import { useDeleteItem } from "../../hooks/items/useDeleteItem";
 
-const Wishlist = () => {
+type Props = {
+  wishlistId: string;
+};
+
+const Wishlist = ({ wishlistId }: Props) => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-  const { data: items = [], isLoading, isError } = useItems();
+  const { data: items = [], isLoading, isError } = useItems(wishlistId);
   const { mutate: createItem } = useCreateItem();
   const { mutate: updateItem } = useUpdateItem();
   const { mutate: deleteItem } = useDeleteItem();
@@ -21,14 +25,17 @@ const Wishlist = () => {
     ? items.find((item) => item.id === editingItemId)
     : null;
 
-  const handleAdd = (newItem: Item) => {
-    createItem(newItem, { onSuccess: () => setShowModal(false) });
+  const handleAdd = (newItem: CreateItemDto) => {
+    createItem(
+      { wishlistId, dto: newItem },
+      { onSuccess: () => setShowModal(false) },
+    );
   };
 
   const handleUpdate = (updatedItem: Item) => {
     if (!editingItemId) return;
     updateItem(
-      { id: editingItemId, dto: updatedItem },
+      { wishlistId, id: editingItemId, dto: updatedItem },
       {
         onSuccess: () => {
           setShowModal(false);
@@ -39,7 +46,7 @@ const Wishlist = () => {
   };
 
   const handleDelete = (id: string) => {
-    deleteItem(id);
+    deleteItem({ wishlistId, id });
   };
 
   const handleEdit = (id: string) => {
@@ -48,7 +55,7 @@ const Wishlist = () => {
   };
 
   const handleChangeStatus = (id: string, status: ItemStatus) => {
-    updateItem({ id, dto: { status } });
+    updateItem({ wishlistId, id, dto: { status } });
   };
 
   if (isLoading) return <p>Loading...</p>;

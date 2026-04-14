@@ -1,6 +1,6 @@
 import styles from "./AddItemModal.module.css";
 import { useState, type SubmitEventHandler } from "react";
-import { CURRENCIES } from "@wishlist/types";
+import { CURRENCIES, type CreateItemDto } from "@wishlist/types";
 import type { Currency, Item } from "@wishlist/types";
 import Modal from "../../../ui/Modal";
 
@@ -13,7 +13,7 @@ type FormData = {
 
 type Props = {
   item?: Item;
-  onAdd: (item: Item) => void;
+  onAdd: (item: CreateItemDto) => void;
   onUpdate: (item: Item) => void;
   onClose: () => void;
 };
@@ -42,7 +42,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
   const title = isEditing ? "Edit Item" : "New Item";
   const buttonText = isEditing ? "Save Changes" : "Add Item";
 
-  const handleOnSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     if (!formData.name || !formData.price || !formData.link) {
       setError(true);
@@ -59,8 +59,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
       return;
     }
 
-    const newItem: Item = {
-      id: crypto.randomUUID(),
+    const newItem: CreateItemDto = {
       image: "Image",
       status: "want",
       ...formData,
@@ -73,7 +72,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
   };
   return (
     <Modal onClose={onClose}>
-      <form onSubmit={handleOnSubmit} className={styles.form} noValidate>
+      <form onSubmit={handleSubmit} className={styles.form} noValidate>
         <h2>{title}</h2>
         {error && (
           <div

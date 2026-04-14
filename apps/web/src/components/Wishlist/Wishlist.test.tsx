@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe("Wishlist", () => {
   test("renders wishlist with initial items", async () => {
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
     await screen.findByText("Wishlist");
 
@@ -38,7 +38,7 @@ describe("Wishlist", () => {
   test("opens modal when Add Item button clicked", async () => {
     const user = userEvent.setup();
 
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
     await screen.findByText("Wishlist");
 
@@ -65,7 +65,7 @@ describe("Wishlist", () => {
       .mockResolvedValueOnce([mockItem, newItem]);
 
     const user = userEvent.setup();
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
     await screen.findByText("Wishlist");
 
     await user.click(screen.getByTestId("wishlist-add-button"));
@@ -98,7 +98,7 @@ describe("Wishlist", () => {
       .mockResolvedValueOnce([updatedItem]);
 
     const user = userEvent.setup();
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
     await screen.findByText("Wishlist");
 
     const editButtons = screen.getAllByTestId("items-table-edit-button");
@@ -122,7 +122,7 @@ describe("Wishlist", () => {
     vi.mocked(deleteItem).mockResolvedValue(undefined);
 
     const user = userEvent.setup();
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
     await screen.findByText("Wishlist");
 
     const deleteButtons = screen.getAllByTestId("items-table-delete-button");
@@ -135,7 +135,7 @@ describe("Wishlist", () => {
   test("closes modal when cancel button clicked", async () => {
     const user = userEvent.setup();
 
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
     await screen.findByText("Wishlist");
 
@@ -151,7 +151,7 @@ describe("Wishlist", () => {
   test("closes modal when backdrop clicked", async () => {
     const user = userEvent.setup();
 
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
     await screen.findByText("Wishlist");
 
@@ -165,7 +165,7 @@ describe("Wishlist", () => {
   });
 
   test("renders table with correct headers", async () => {
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
     await screen.findByText("Wishlist");
 
@@ -182,7 +182,7 @@ describe("Wishlist", () => {
       .mockResolvedValueOnce([{ ...mockItem, status: "bought" }]);
 
     const user = userEvent.setup();
-    renderWithClient(<Wishlist />);
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
     await screen.findByText("Wishlist");
 
     const statusSelects = screen.getAllByTestId("items-table-status");

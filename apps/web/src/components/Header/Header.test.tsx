@@ -8,9 +8,16 @@ vi.mock("../../lib/auth-client", () => ({
   signOut: vi.fn(),
 }));
 
-vi.mock("@tanstack/react-router", () => ({
-  useNavigate: () => mockNavigate,
-}));
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+      <a href={to}>{children}</a>
+    ),
+  };
+});
 
 const mockNavigate = vi.fn();
 
