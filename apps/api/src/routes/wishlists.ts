@@ -89,10 +89,10 @@ wishlists.post("/", async (c) => {
 });
 
 /**
- * PUT /api/wishlists/:wishlistId
+ * PATCH /api/wishlists/:wishlistId
  * Update a wishlist
  */
-wishlists.put("/:wishlistId", async (c) => {
+wishlists.patch("/:wishlistId", async (c) => {
   try {
     const session = c.get("session");
     const userId = session.user.id;

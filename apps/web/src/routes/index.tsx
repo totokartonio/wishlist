@@ -1,13 +1,16 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import Wishlist from "../components/Wishlist";
-import { authClient } from "../lib/auth-client";
+import { createFileRoute } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  beforeLoad: async () => {
-    const { data: session } = await authClient.getSession();
-    if (!session) {
-      throw redirect({ to: "/login" });
-    }
-  },
-  component: Wishlist,
+  component: Index,
 });
+
+function Index() {
+  const navigate = useNavigate();
+  return (
+    <div>
+      <h1>Wishlist App</h1>
+      <button onClick={() => navigate({ to: "/login" })}>Get started</button>
+    </div>
+  );
+}

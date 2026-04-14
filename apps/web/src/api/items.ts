@@ -9,35 +9,59 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-export const getItems = async (): Promise<Item[]> => {
-  const response = await fetch(`${BASE_URL}/api/items`);
+export const getItems = async (wishlistId: string): Promise<Item[]> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items`,
+    {
+      credentials: "include",
+    },
+  );
   return handleResponse<Item[]>(response);
 };
 
-export const createItem = async (dto: CreateItemDto): Promise<Item> => {
-  const response = await fetch(`${BASE_URL}/api/items`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dto),
-  });
+export const createItem = async (
+  wishlistId: string,
+  dto: CreateItemDto,
+): Promise<Item> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items`,
+    {
+      credentials: "include",
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dto),
+    },
+  );
   return handleResponse<Item>(response);
 };
 
 export const updateItem = async (
+  wishlistId: string,
   id: string,
   dto: UpdateItemDto,
 ): Promise<Item> => {
-  const response = await fetch(`${BASE_URL}/api/items/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dto),
-  });
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}`,
+    {
+      credentials: "include",
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dto),
+    },
+  );
   return handleResponse<Item>(response);
 };
 
-export const deleteItem = async (id: string): Promise<void> => {
-  const response = await fetch(`${BASE_URL}/api/items/${id}`, {
-    method: "DELETE",
-  });
+export const deleteItem = async (
+  wishlistId: string,
+  id: string,
+): Promise<void> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}`,
+    {
+      credentials: "include",
+      method: "DELETE",
+    },
+  );
   return handleResponse<void>(response);
 };

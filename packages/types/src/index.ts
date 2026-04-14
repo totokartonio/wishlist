@@ -22,3 +22,25 @@ export type Item = {
 
 export type CreateItemDto = Omit<Item, "id">;
 export type UpdateItemDto = Partial<CreateItemDto>;
+
+export type WishlistVisibility = "private" | "public" | "invite";
+
+export const WISHLIST_VISIBILITY = ["private", "public", "invite"] as const;
+
+export type Wishlist = {
+  id: string;
+  name: string;
+  description: string | null;
+  visibility: WishlistVisibility;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateWishlistDto = {
+  name: string;
+  description?: string;
+  visibility?: WishlistVisibility;
+};
+
+export type UpdateWishlistDto = Partial<CreateWishlistDto>;

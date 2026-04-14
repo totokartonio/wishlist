@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import styles from "./Header.module.css";
 import { useSession, signOut } from "../../lib/auth-client";
 import { useState } from "react";
@@ -29,7 +29,11 @@ const Header = () => {
     <div className={styles.header}>
       <div>Logo</div>
       <nav className={styles.navBar}>
-        {loggedIn && <div>{userName}</div>}
+        {loggedIn && (
+          <div>
+            <Link to="/dashboard">{userName}</Link>
+          </div>
+        )}
         <button onClick={handleClick}>{loggedIn ? "Log out" : "Log in"}</button>
       </nav>
       {showModal && (

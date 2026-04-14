@@ -1,0 +1,17 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.field {
+  width: 100%;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+
+  & input {
+    width: 100%;
+  }
+}
