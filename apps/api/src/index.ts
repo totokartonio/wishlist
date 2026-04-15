@@ -4,6 +4,9 @@ import { auth } from "./auth";
 import { requireAuth } from "./middleware/auth";
 import wishlists from "./routes/wishlists";
 import items from "./routes/items";
+import collaborators from "./routes/collaborators";
+import invites from "./routes/invites";
+import publicInvites from "./routes/publicInvites";
 
 const app = new Hono();
 
@@ -33,7 +36,8 @@ app.use("*", async (c, next) => {
 // AUTH ROUTES
 // ============================================================
 
-app.on(["POST", "GET"], "/api/auth/**", (c) => {
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
+  console.log("Auth handler reached:", c.req.url);
   return auth.handler(c.req.raw);
 });
 
@@ -44,6 +48,15 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => {
 app.use("/api/wishlists/*", requireAuth);
 app.route("/api/wishlists", wishlists);
 app.route("/api/wishlists/:wishlistId/items", items);
+app.route("/api/wishlists/:wishlistId/collaborators", collaborators);
+
+app.route("/api/wishlists/:wishlistId/invites", invites);
+
+// ============================================================
+// PUBLIC ROUTES
+// ============================================================
+
+app.route("/api/invites", publicInvites);
 
 // ============================================================
 // HEALTH CHECK
