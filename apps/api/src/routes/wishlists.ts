@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "@wishlist/database";
 import type { AuthVariables } from "../middleware/auth";
+import { getWishlistWithRole } from "../lib/wishlistAccess";
 
 const wishlists = new Hono<{ Variables: AuthVariables }>();
 
@@ -35,17 +36,13 @@ wishlists.get("/:wishlistId", async (c) => {
     const userId = session.user.id;
     const wishlistId = c.req.param("wishlistId");
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role) return c.json({ error: "Forbidden" }, 403);
 
     return c.json(wishlist);
   } catch (error) {
@@ -103,17 +100,13 @@ wishlists.patch("/:wishlistId", async (c) => {
       visibility?: string;
     }>();
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
 
     const updated = await prisma.wishlist.update({
       where: { id: wishlistId },
@@ -137,17 +130,13 @@ wishlists.delete("/:wishlistId", async (c) => {
     const userId = session.user.id;
     const wishlistId = c.req.param("wishlistId");
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
 
     await prisma.wishlist.delete({
       where: { id: wishlistId },

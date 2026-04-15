@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { prisma } from "@wishlist/database";
 import type { CreateItemDto, UpdateItemDto } from "@wishlist/types";
 import type { AuthVariables } from "../middleware/auth";
+import { getWishlistWithRole } from "../lib/wishlistAccess";
 
 const items = new Hono<{ Variables: AuthVariables }>();
 
@@ -15,17 +16,13 @@ items.get("/", async (c) => {
     const userId = session.user.id;
     const wishlistId = c.req.param("wishlistId");
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role) return c.json({ error: "Forbidden" }, 403);
 
     const wishlistItems = await prisma.item.findMany({
       where: { wishlistId },
@@ -50,17 +47,13 @@ items.get("/:id", async (c) => {
     const wishlistId = c.req.param("wishlistId");
     const id = c.req.param("id");
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role) return c.json({ error: "Forbidden" }, 403);
 
     const item = await prisma.item.findUnique({
       where: { id },
@@ -93,17 +86,9 @@ items.post("/", async (c) => {
       return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
-    }
-
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
 
     if (
       !body.name ||
@@ -155,15 +140,18 @@ items.patch("/:id", async (c) => {
     const id = c.req.param("id");
     const body = await c.req.json<UpdateItemDto>();
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role) return c.json({ error: "Forbidden" }, 403);
+
+    const isStatusOnly =
+      Object.keys(body).length === 1 && body.status !== undefined;
+
+    if (!isStatusOnly && role === "viewer") {
       return c.json({ error: "Forbidden" }, 403);
     }
 
@@ -200,17 +188,13 @@ items.delete("/:id", async (c) => {
     const wishlistId = c.req.param("wishlistId");
     const id = c.req.param("id");
 
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { id: wishlistId },
-    });
-
-    if (!wishlist) {
-      return c.json({ error: "Wishlist not found" }, 404);
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
     }
 
-    if (wishlist.ownerId !== userId) {
-      return c.json({ error: "Forbidden" }, 403);
-    }
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
 
     await prisma.item.delete({
       where: { id },
