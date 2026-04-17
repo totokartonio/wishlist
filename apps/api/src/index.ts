@@ -10,10 +10,6 @@ import publicInvites from "./routes/publicInvites";
 
 const app = new Hono();
 
-// ============================================================
-// MIDDLEWARE
-// ============================================================
-
 app.use(
   "/*",
   cors({
@@ -32,102 +28,34 @@ app.use("*", async (c, next) => {
   console.log(`${c.req.method} ${c.req.url} - ${ms}ms`);
 });
 
-// ============================================================
-// AUTH ROUTES
-// ============================================================
-
 app.on(["POST", "GET"], "/api/auth/*", (c) => {
   console.log("Auth handler reached:", c.req.url);
   return auth.handler(c.req.raw);
 });
 
-// ============================================================
-// PROTECTED ROUTES
-// ============================================================
+app.use("/api/wishlists/:wishlistId/collaborators/*", requireAuth);
+app.use("/api/wishlists/:wishlistId/invites/*", requireAuth);
 
-app.use("/api/wishlists/*", requireAuth);
 app.route("/api/wishlists", wishlists);
 app.route("/api/wishlists/:wishlistId/items", items);
 app.route("/api/wishlists/:wishlistId/collaborators", collaborators);
-
 app.route("/api/wishlists/:wishlistId/invites", invites);
-
-// ============================================================
-// PUBLIC ROUTES
-// ============================================================
-
 app.route("/api/invites", publicInvites);
 
-// ============================================================
-// HEALTH CHECK
-// ============================================================
-
 app.get("/health", (c) => {
-  return c.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  });
+  return c.json({ status: "ok", timestamp: new Date().toISOString() });
 });
-
-// ============================================================
-// 404 HANDLER
-// ============================================================
 
 app.notFound((c) => {
-  return c.json(
-    {
-      error: "Not Found",
-      path: c.req.url,
-    },
-    404,
-  );
+  return c.json({ error: "Not Found", path: c.req.url }, 404);
 });
-
-// ============================================================
-// ERROR HANDLER
-// ============================================================
 
 app.onError((err, c) => {
   console.error("Unhandled error:", err);
-  return c.json(
-    {
-      error: "Internal Server Error",
-      message: err.message,
-    },
-    500,
-  );
+  return c.json({ error: "Internal Server Error", message: err.message }, 500);
 });
 
-// ============================================================
-// START SERVER
-// ============================================================
-
 const port = Number(process.env.PORT) || 3000;
+console.log(`🚀 Wishlist API running on port ${port}`);
 
-console.log(`
-╔════════════════════════════════════════╗
-║                                        ║
-║   🚀 Wishlist API Server Started       ║
-║                                        ║
-║   Port:        ${port}                 ║
-║   Environment: ${process.env.NODE_ENV || "development"}        ║
-║                                        ║
-║   Endpoints:                           ║
-║   • GET    /health                     ║
-║   • GET    /api/wishlists              ║
-║   • POST   /api/wishlists              ║
-║   • GET    /api/wishlists/:id          ║
-║   • PUT    /api/wishlists/:id          ║
-║   • DELETE /api/wishlists/:id          ║
-║   • GET    /api/wishlists/:id/items    ║
-║   • POST   /api/wishlists/:id/items    ║
-║   • PATCH  /api/wishlists/:id/items/:id║
-║   • DELETE /api/wishlists/:id/items/:id║
-║                                        ║
-╚════════════════════════════════════════╝
-`);
-
-export default {
-  port,
-  fetch: app.fetch,
-};
+export default { port, fetch: app.fetch };

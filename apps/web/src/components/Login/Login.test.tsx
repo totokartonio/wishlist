@@ -52,7 +52,7 @@ describe("Login", () => {
     await user.type(screen.getByTestId("password-input"), "password123");
     await user.click(screen.getByRole("button", { name: "Sign In" }));
 
-    expect(mockNavigate).toHaveBeenCalledWith({ to: "/" });
+    expect(mockNavigate).toHaveBeenCalledWith({ to: "/dashboard" });
   });
 
   test("shows error message on failed sign-in", async () => {

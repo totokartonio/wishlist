@@ -2,20 +2,17 @@ import { Hono } from "hono";
 import { prisma } from "@wishlist/database";
 import type { AuthVariables } from "../middleware/auth";
 import { getWishlistWithRole } from "../lib/wishlistAccess";
+import { auth } from "../auth";
 
 const wishlists = new Hono<{ Variables: AuthVariables }>();
 
-/**
- * GET /api/wishlists
- * Get all wishlists for the current user
- */
 wishlists.get("/", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
 
     const userWishlists = await prisma.wishlist.findMany({
-      where: { ownerId: userId },
+      where: { ownerId: session.user.id },
       orderBy: { createdAt: "desc" },
     });
 
@@ -26,19 +23,13 @@ wishlists.get("/", async (c) => {
   }
 });
 
-/**
- * GET /api/wishlists/:wishlistId
- * Get a single wishlist
- */
 wishlists.get("/:wishlistId", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    const userId = session?.user.id ?? null;
     const wishlistId = c.req.param("wishlistId");
 
-    if (!wishlistId) {
-      return c.json({ error: "Wishlist ID is required" }, 400);
-    }
+    if (!wishlistId) return c.json({ error: "Wishlist ID is required" }, 400);
 
     const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
@@ -51,30 +42,25 @@ wishlists.get("/:wishlistId", async (c) => {
   }
 });
 
-/**
- * POST /api/wishlists
- * Create a new wishlist
- */
 wishlists.post("/", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+
     const body = await c.req.json<{
       name: string;
       description?: string;
       visibility?: string;
     }>();
 
-    if (!body.name) {
-      return c.json({ error: "Name is required" }, 400);
-    }
+    if (!body.name) return c.json({ error: "Name is required" }, 400);
 
     const wishlist = await prisma.wishlist.create({
       data: {
         name: body.name,
         description: body.description,
         visibility: body.visibility || "private",
-        ownerId: userId,
+        ownerId: session.user.id,
       },
     });
 
@@ -85,14 +71,11 @@ wishlists.post("/", async (c) => {
   }
 });
 
-/**
- * PATCH /api/wishlists/:wishlistId
- * Update a wishlist
- */
 wishlists.patch("/:wishlistId", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+
     const wishlistId = c.req.param("wishlistId");
     const body = await c.req.json<{
       name?: string;
@@ -100,11 +83,12 @@ wishlists.patch("/:wishlistId", async (c) => {
       visibility?: string;
     }>();
 
-    if (!wishlistId) {
-      return c.json({ error: "Wishlist ID is required" }, 400);
-    }
+    if (!wishlistId) return c.json({ error: "Wishlist ID is required" }, 400);
 
-    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    const { wishlist, role } = await getWishlistWithRole(
+      wishlistId,
+      session.user.id,
+    );
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
 
@@ -120,27 +104,23 @@ wishlists.patch("/:wishlistId", async (c) => {
   }
 });
 
-/**
- * DELETE /api/wishlists/:wishlistId
- * Delete a wishlist
- */
 wishlists.delete("/:wishlistId", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+
     const wishlistId = c.req.param("wishlistId");
 
-    if (!wishlistId) {
-      return c.json({ error: "Wishlist ID is required" }, 400);
-    }
+    if (!wishlistId) return c.json({ error: "Wishlist ID is required" }, 400);
 
-    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    const { wishlist, role } = await getWishlistWithRole(
+      wishlistId,
+      session.user.id,
+    );
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
 
-    await prisma.wishlist.delete({
-      where: { id: wishlistId },
-    });
+    await prisma.wishlist.delete({ where: { id: wishlistId } });
 
     return c.json({ success: true });
   } catch (error) {

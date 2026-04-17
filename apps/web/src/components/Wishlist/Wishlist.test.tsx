@@ -5,6 +5,43 @@ import { Wishlist } from "./Wishlist";
 import { renderWithClient } from "../../test/utils";
 import { getItems } from "../../api/items";
 import { deleteItem, updateItem, createItem } from "../../api/items";
+import { getWishlist } from "../../api/wishlists";
+import { useSession } from "../../lib/auth-client";
+
+const mockWishlist = {
+  id: "test-wishlist-id",
+  name: "Test Wishlist",
+  description: null,
+  visibility: "private" as const,
+  ownerId: "user-1",
+  createdAt: "2024-01-01",
+  updatedAt: "2024-01-01",
+};
+
+const mockSession = {
+  data: {
+    user: {
+      id: "user-1",
+      name: "Test User",
+      email: "test@test.com",
+      emailVerified: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    session: {
+      id: "1",
+      userId: "user-1",
+      token: "token",
+      expiresAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  },
+  isPending: false,
+  isRefetching: false,
+  error: null,
+  refetch: vi.fn(),
+};
 
 const mockItem = {
   id: "1",
@@ -17,20 +54,27 @@ const mockItem = {
 };
 
 vi.mock("../../api/items");
+vi.mock("../../api/wishlists");
+vi.mock("../../lib/auth-client", () => ({
+  useSession: vi.fn(),
+}));
+
 beforeEach(() => {
   vi.mocked(getItems).mockResolvedValue([mockItem]);
   vi.mocked(deleteItem).mockResolvedValue(undefined);
   vi.mocked(updateItem).mockResolvedValue(mockItem);
   vi.mocked(createItem).mockResolvedValue(mockItem);
+  vi.mocked(getWishlist).mockResolvedValue(mockWishlist);
+  vi.mocked(useSession).mockReturnValue(mockSession);
 });
 
 describe("Wishlist", () => {
   test("renders wishlist with initial items", async () => {
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
-    expect(screen.getByText("Wishlist")).toBeInTheDocument();
+    expect(screen.getByText("Test Wishlist")).toBeInTheDocument();
     expect(screen.getByTestId("wishlist-add-button")).toBeInTheDocument();
     expect(await screen.findByText("Existing Item")).toBeInTheDocument();
   });
@@ -40,7 +84,7 @@ describe("Wishlist", () => {
 
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     const addButton = screen.getByTestId("wishlist-add-button");
     await user.click(addButton);
@@ -66,7 +110,7 @@ describe("Wishlist", () => {
 
     const user = userEvent.setup();
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     await user.click(screen.getByTestId("wishlist-add-button"));
     await user.type(
@@ -99,7 +143,7 @@ describe("Wishlist", () => {
 
     const user = userEvent.setup();
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     const editButtons = screen.getAllByTestId("items-table-edit-button");
     await user.click(editButtons[0]);
@@ -116,19 +160,19 @@ describe("Wishlist", () => {
 
   test("deletes item when delete button clicked", async () => {
     vi.mocked(getItems)
-      .mockResolvedValueOnce([mockItem]) // initial fetch
-      .mockResolvedValueOnce([]); // after deletion
+      .mockResolvedValueOnce([mockItem])
+      .mockResolvedValueOnce([]);
 
     vi.mocked(deleteItem).mockResolvedValue(undefined);
 
     const user = userEvent.setup();
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     const deleteButtons = screen.getAllByTestId("items-table-delete-button");
     await user.click(deleteButtons[0]);
 
-    await screen.findByRole("table"); // wait for refetch
+    await screen.findByRole("table");
     expect(screen.queryByText("Existing Item")).not.toBeInTheDocument();
   });
 
@@ -137,13 +181,12 @@ describe("Wishlist", () => {
 
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     await user.click(screen.getByTestId("wishlist-add-button"));
     expect(screen.getByText("New Item")).toBeInTheDocument();
 
     const closeButton = screen.getByTestId("modal-close-button");
-
     await user.click(closeButton);
     expect(screen.queryByText("New Item")).not.toBeInTheDocument();
   });
@@ -153,7 +196,7 @@ describe("Wishlist", () => {
 
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     await user.click(screen.getByTestId("wishlist-add-button"));
     expect(screen.getByText("New Item")).toBeInTheDocument();
@@ -167,7 +210,7 @@ describe("Wishlist", () => {
   test("renders table with correct headers", async () => {
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
 
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     expect(screen.getByText("Item Name")).toBeInTheDocument();
     expect(screen.getByText("Price")).toBeInTheDocument();
@@ -183,7 +226,7 @@ describe("Wishlist", () => {
 
     const user = userEvent.setup();
     renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
-    await screen.findByText("Wishlist");
+    await screen.findByText("Test Wishlist");
 
     const statusSelects = screen.getAllByTestId("items-table-status");
     expect(statusSelects[0]).toHaveValue("want");
@@ -192,5 +235,16 @@ describe("Wishlist", () => {
 
     const updatedSelect = await screen.findByTestId("items-table-status");
     expect(updatedSelect).toHaveValue("bought");
+  });
+
+  test("opens sidebar when manage button clicked", async () => {
+    const user = userEvent.setup();
+    renderWithClient(<Wishlist wishlistId="test-wishlist-id" />);
+
+    await screen.findByText("Test Wishlist");
+
+    await user.click(screen.getByRole("button", { name: "Manage" }));
+
+    expect(screen.getByTestId("wishlist-sidebar")).toBeInTheDocument();
   });
 });

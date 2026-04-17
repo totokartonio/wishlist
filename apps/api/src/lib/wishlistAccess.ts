@@ -27,15 +27,18 @@ export const getUserWishlistRole = async (
 
 export const getWishlistWithRole = async (
   wishlistId: string,
-  userId: string,
+  userId: string | null,
 ) => {
   const wishlist = await prisma.wishlist.findUnique({
     where: { id: wishlistId },
   });
 
   if (!wishlist) return { wishlist: null, role: null };
-
   if (wishlist.ownerId === userId) return { wishlist, role: "owner" as const };
+  if (wishlist.visibility === "public")
+    return { wishlist, role: "viewer" as const };
+
+  if (!userId) return { wishlist, role: null };
 
   const collaborator = await prisma.collaborator.findUnique({
     where: { wishlistId_userId: { wishlistId, userId } },
