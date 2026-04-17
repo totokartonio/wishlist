@@ -6,8 +6,8 @@ import Modal from "../../../ui/Modal";
 
 type FormData = {
   name: string;
-  price: number;
-  currency: Currency;
+  price: string;
+  currency: Currency | null;
   link: string;
 };
 
@@ -20,8 +20,8 @@ type Props = {
 
 const defaultFormData: FormData = {
   name: "",
-  price: 0,
-  currency: "USD",
+  price: "",
+  currency: null,
   link: "",
 };
 
@@ -30,7 +30,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
     item
       ? {
           name: item.name,
-          price: item.price,
+          price: item.price === 0 ? "" : String(item.price),
           currency: item.currency,
           link: item.link,
         }
@@ -44,13 +44,17 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    if (!formData.name || !formData.price || !formData.link) {
+    if (!formData.name) {
       setError(true);
       return;
     }
 
     if (isEditing && item) {
-      const updatedItem: Item = { ...item, ...formData };
+      const updatedItem: Item = {
+        ...item,
+        ...formData,
+        price: formData.price === "" ? 0 : Number(formData.price),
+      };
 
       onUpdate(updatedItem);
 
@@ -63,6 +67,7 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
       image: "Image",
       status: "want",
       ...formData,
+      price: formData.price === "" ? 0 : Number(formData.price),
     };
 
     onAdd(newItem);
@@ -107,10 +112,9 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
             data-testid="add-item-modal-price-input"
             value={formData.price}
             onChange={(event) =>
-              setFormData({ ...formData, price: Number(event.target.value) })
+              setFormData({ ...formData, price: event.target.value })
             }
             onBlur={() => setError(false)}
-            required
           />
         </div>
         <div className={styles.field}>
@@ -118,16 +122,20 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
           <select
             id="item-currency"
             data-testid="add-item-modal-currency-select"
-            value={formData.currency}
+            value={formData.currency ?? ""}
             onChange={(event) =>
               setFormData({
                 ...formData,
-                currency: event.target.value as Currency,
+                currency:
+                  event.target.value === ""
+                    ? null
+                    : (event.target.value as Currency),
               })
             }
             onBlur={() => setError(false)}
             required
           >
+            <option value="">—</option>
             {CURRENCIES.map((currency) => (
               <option key={currency} value={currency}>
                 {currency}
@@ -146,7 +154,6 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
               setFormData({ ...formData, link: event.target.value })
             }
             onBlur={() => setError(false)}
-            required
           />
         </div>
         <button type="submit" data-testid="add-item-modal-submit-button">

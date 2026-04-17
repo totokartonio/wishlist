@@ -29,6 +29,7 @@ const mockWishlist = {
   ownerId: "user1",
   createdAt: "2024-01-01",
   updatedAt: "2024-01-01",
+  role: "owner" as const,
 };
 
 beforeEach(() => {

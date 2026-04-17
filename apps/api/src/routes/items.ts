@@ -91,32 +91,27 @@ items.post("/", async (c) => {
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
 
-    if (
-      !body.name ||
-      body.price === undefined ||
-      !body.currency ||
-      !body.link
-    ) {
+    if (!body.name) {
       return c.json(
         {
           error: "Missing required fields",
-          required: ["name", "price", "currency", "link"],
+          required: ["name"],
         },
         400,
       );
     }
 
-    if (body.price < 0) {
+    if (body.price !== undefined && body.price < 0) {
       return c.json({ error: "Price must be a positive number" }, 400);
     }
 
     const item = await prisma.item.create({
       data: {
         name: body.name,
-        price: body.price,
-        currency: body.currency,
+        price: body.price ?? 0,
+        currency: body.currency ?? null,
         status: body.status || "want",
-        link: body.link,
+        link: body.link || "",
         image: body.image || "Image",
         wishlistId,
       },

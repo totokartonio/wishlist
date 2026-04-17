@@ -19,7 +19,7 @@ collaborators.get("/", async (c) => {
 
   const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
   if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
-  if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
+  if (!role) return c.json({ error: "Forbidden" }, 403);
 
   const wishlistCollaborators = await prisma.collaborator.findMany({
     where: { wishlistId },

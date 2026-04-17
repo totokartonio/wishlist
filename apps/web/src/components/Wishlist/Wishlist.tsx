@@ -10,8 +10,8 @@ import { useUpdateItem } from "../../hooks/items/useUpdateItem";
 import { useDeleteItem } from "../../hooks/items/useDeleteItem";
 import Sidebar from "./atoms/Sidebar";
 import { useCollaborators } from "../../hooks/collaborators/useCollaborators";
-import { useSession } from "../../lib/auth-client";
 import { useCreateInvite } from "../../hooks/invites/useCreateInvite";
+import { ApiError } from "../../lib/apiError";
 
 type Props = {
   wishlistId: string;
@@ -23,8 +23,6 @@ const Wishlist = ({ wishlistId }: Props) => {
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [inviteUrl, setInviteUrl] = useState<string | undefined>(undefined);
 
-  const { data: session } = useSession();
-
   const { data: items = [], isLoading, isError } = useItems(wishlistId);
   const { mutate: createItem } = useCreateItem();
   const { mutate: updateItem } = useUpdateItem();
@@ -34,10 +32,10 @@ const Wishlist = ({ wishlistId }: Props) => {
     data: wishlist,
     isLoading: isWishlistLoading,
     isError: isWishlistError,
+    error: wishlistError,
   } = useWishlist(wishlistId);
 
-  const enabled =
-    !!wishlist && !!session && wishlist.ownerId === session.user.id;
+  const enabled = !!wishlist;
   const { data: collaborators } = useCollaborators(wishlistId, enabled);
 
   const { mutate: createInvite } = useCreateInvite();
@@ -48,7 +46,8 @@ const Wishlist = ({ wishlistId }: Props) => {
     });
   };
 
-  const isOwner = wishlist?.ownerId === session?.user.id;
+  const isOwner = wishlist?.role === "owner";
+  const canEdit = wishlist?.role === "owner" || wishlist?.role === "editor";
 
   const editingItem = editingItemId
     ? items.find((item) => item.id === editingItemId)
@@ -88,24 +87,38 @@ const Wishlist = ({ wishlistId }: Props) => {
   };
 
   if (isLoading || isWishlistLoading) return <p>Loading...</p>;
-  if (isError || isWishlistError) return <p>Something went wrong.</p>;
+
+  if (isWishlistError) {
+    if (wishlistError instanceof ApiError && wishlistError.status === 403) {
+      return <p>You don't have access to this wishlist.</p>;
+    }
+    if (wishlistError instanceof ApiError && wishlistError.status === 404) {
+      return <p>Wishlist not found.</p>;
+    }
+    return <p>Something went wrong.</p>;
+  }
+
+  if (isError) return <p>Something went wrong.</p>;
   if (!wishlist) return <p>Wishlist not found.</p>;
 
   return (
     <div className={styles.container}>
       <h1>{wishlist.name}</h1>
-      <button
-        onClick={() => setShowModal(true)}
-        data-testid="wishlist-add-button"
-      >
-        Add Item
-      </button>
+      {canEdit && (
+        <button
+          onClick={() => setShowModal(true)}
+          data-testid="wishlist-add-button"
+        >
+          Add Item
+        </button>
+      )}
       <button onClick={() => setShowSidebar(true)}>Manage</button>
       <ItemsTable
         items={items}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onChangeStatus={handleChangeStatus}
+        canEdit={canEdit}
       />
       {showSidebar && (
         <Sidebar

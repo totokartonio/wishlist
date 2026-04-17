@@ -5,41 +5,23 @@ import { AddItemModal } from "./AddItemModal";
 
 describe("AddItemModal", () => {
   test("fields appear empty", () => {
-    const mockOnAdd = vi.fn();
-    const mockOnUpdate = vi.fn();
-    const mockOnClose = vi.fn();
-
     render(
-      <AddItemModal
-        onAdd={mockOnAdd}
-        onUpdate={mockOnUpdate}
-        onClose={mockOnClose}
-      />,
+      <AddItemModal onAdd={vi.fn()} onUpdate={vi.fn()} onClose={vi.fn()} />,
     );
 
-    const nameInput = screen.getByTestId("add-item-modal-name-input");
-    const priceInput = screen.getByTestId("add-item-modal-price-input");
-    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
-    const linkInput = screen.getByTestId("add-item-modal-link-input");
-
-    expect(nameInput).toHaveValue("");
-    expect(priceInput).toHaveValue(0);
-    expect(currencySelect).toHaveValue("USD");
-    expect(linkInput).toHaveValue("");
+    expect(screen.getByTestId("add-item-modal-name-input")).toHaveValue("");
+    expect(screen.getByTestId("add-item-modal-price-input")).toHaveValue(null);
+    expect(screen.getByTestId("add-item-modal-currency-select")).toHaveValue(
+      "",
+    );
+    expect(screen.getByTestId("add-item-modal-link-input")).toHaveValue("");
   });
 
   test("can't submit empty form", async () => {
     const user = userEvent.setup();
-    const mockOnAdd = vi.fn();
-    const mockOnUpdate = vi.fn();
-    const mockOnClose = vi.fn();
 
     render(
-      <AddItemModal
-        onAdd={mockOnAdd}
-        onUpdate={mockOnUpdate}
-        onClose={mockOnClose}
-      />,
+      <AddItemModal onAdd={vi.fn()} onUpdate={vi.fn()} onClose={vi.fn()} />,
     );
 
     await user.click(screen.getByTestId("add-item-modal-submit-button"));
@@ -51,26 +33,17 @@ describe("AddItemModal", () => {
 
   test("clear error on blur", async () => {
     const user = userEvent.setup();
-    const mockOnAdd = vi.fn();
-    const mockOnUpdate = vi.fn();
-    const mockOnClose = vi.fn();
 
     render(
-      <AddItemModal
-        onAdd={mockOnAdd}
-        onUpdate={mockOnUpdate}
-        onClose={mockOnClose}
-      />,
+      <AddItemModal onAdd={vi.fn()} onUpdate={vi.fn()} onClose={vi.fn()} />,
     );
-
-    const nameInput = screen.getByTestId("add-item-modal-name-input");
 
     await user.click(screen.getByTestId("add-item-modal-submit-button"));
 
     const errorMessage = screen.getByTestId("error-message");
     expect(errorMessage).toBeInTheDocument();
 
-    await user.click(nameInput);
+    await user.click(screen.getByTestId("add-item-modal-name-input"));
     await user.tab();
     expect(errorMessage).not.toBeInTheDocument();
   });
@@ -78,28 +51,30 @@ describe("AddItemModal", () => {
   test("add new item on submit", async () => {
     const user = userEvent.setup();
     const mockOnAdd = vi.fn();
-    const mockOnUpdate = vi.fn();
     const mockOnClose = vi.fn();
 
     render(
       <AddItemModal
         onAdd={mockOnAdd}
-        onUpdate={mockOnUpdate}
+        onUpdate={vi.fn()}
         onClose={mockOnClose}
       />,
     );
 
-    const nameInput = screen.getByTestId("add-item-modal-name-input");
-    const priceInput = screen.getByTestId("add-item-modal-price-input");
-    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
-    const linkInput = screen.getByTestId("add-item-modal-link-input");
-    const submitButton = screen.getByTestId("add-item-modal-submit-button");
-
-    await user.type(nameInput, "Sony headphones");
-    await user.type(priceInput, "100");
-    await user.selectOptions(currencySelect, "USD");
-    await user.type(linkInput, "https://amazon.de");
-    await user.click(submitButton);
+    await user.type(
+      screen.getByTestId("add-item-modal-name-input"),
+      "Sony headphones",
+    );
+    await user.type(screen.getByTestId("add-item-modal-price-input"), "100");
+    await user.selectOptions(
+      screen.getByTestId("add-item-modal-currency-select"),
+      "USD",
+    );
+    await user.type(
+      screen.getByTestId("add-item-modal-link-input"),
+      "https://amazon.de",
+    );
+    await user.click(screen.getByTestId("add-item-modal-submit-button"));
 
     expect(mockOnAdd).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -111,18 +86,19 @@ describe("AddItemModal", () => {
       }),
     );
 
-    expect(nameInput).toHaveValue("");
-    expect(priceInput).toHaveValue(0);
-    expect(currencySelect).toHaveValue("USD");
-    expect(linkInput).toHaveValue("");
-
+    expect(screen.getByTestId("add-item-modal-name-input")).toHaveValue("");
+    expect(screen.getByTestId("add-item-modal-price-input")).toHaveValue(null);
+    expect(screen.getByTestId("add-item-modal-currency-select")).toHaveValue(
+      "",
+    );
+    expect(screen.getByTestId("add-item-modal-link-input")).toHaveValue("");
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   test("edit item on submit", async () => {
     const user = userEvent.setup();
-    const mockOnAdd = vi.fn();
     const mockOnUpdate = vi.fn();
+    const mockOnAdd = vi.fn();
     const mockOnClose = vi.fn();
 
     const existingItem = {
@@ -144,19 +120,26 @@ describe("AddItemModal", () => {
       />,
     );
 
-    const nameInput = screen.getByTestId("add-item-modal-name-input");
-    const priceInput = screen.getByTestId("add-item-modal-price-input");
-    const currencySelect = screen.getByTestId("add-item-modal-currency-select");
-    const linkInput = screen.getByTestId("add-item-modal-link-input");
+    expect(screen.getByTestId("add-item-modal-name-input")).toHaveValue(
+      "Old Name",
+    );
+    expect(screen.getByTestId("add-item-modal-price-input")).toHaveValue(50);
+    expect(screen.getByTestId("add-item-modal-currency-select")).toHaveValue(
+      "USD",
+    );
+    expect(screen.getByTestId("add-item-modal-link-input")).toHaveValue(
+      "https://old.de",
+    );
 
-    expect(nameInput).toHaveValue("Old Name");
-    expect(priceInput).toHaveValue(50);
-    expect(currencySelect).toHaveValue("USD");
-    expect(linkInput).toHaveValue("https://old.de");
-
-    await user.clear(nameInput);
-    await user.type(nameInput, "New Name");
-    await user.selectOptions(currencySelect, "EUR");
+    await user.clear(screen.getByTestId("add-item-modal-name-input"));
+    await user.type(
+      screen.getByTestId("add-item-modal-name-input"),
+      "New Name",
+    );
+    await user.selectOptions(
+      screen.getByTestId("add-item-modal-currency-select"),
+      "EUR",
+    );
     await user.click(screen.getByTestId("add-item-modal-submit-button"));
 
     expect(mockOnUpdate).toHaveBeenCalledWith(

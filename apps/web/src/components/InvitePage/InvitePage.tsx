@@ -34,6 +34,14 @@ const InvitePage = ({ token }: Props) => {
           to: "/wishlists/$wishlistId",
           params: { wishlistId: invite.wishlist.id },
         }),
+      onError: (error) => {
+        if (error.message.includes("400")) {
+          navigate({
+            to: "/wishlists/$wishlistId",
+            params: { wishlistId: invite.wishlist.id },
+          });
+        }
+      },
     });
   };
 
