@@ -24,7 +24,7 @@ invites.post("/", async (c) => {
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
 
-    const expiresInDays = body.expiresInDays ?? 7;
+    const expiresInDays = body.expiresInDays ?? 1;
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 

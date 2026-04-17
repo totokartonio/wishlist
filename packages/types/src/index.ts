@@ -44,3 +44,33 @@ export type CreateWishlistDto = {
 };
 
 export type UpdateWishlistDto = Partial<CreateWishlistDto>;
+
+export type Collaborator = {
+  id: string;
+  userId: string;
+  wishlistId: string;
+  role: "editor" | "viewer";
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+};
+
+export type InviteLink = {
+  id: string;
+  wishlistId: string;
+  token: string;
+  expiresAt: string;
+  createdAt: string;
+  url: string;
+};
+
+export type InviteWithWishlist = InviteLink & {
+  wishlist: {
+    id: string;
+    name: string;
+    description: string | null;
+    visibility: WishlistVisibility;
+  };
+};

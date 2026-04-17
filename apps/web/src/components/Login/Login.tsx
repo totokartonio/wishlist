@@ -60,7 +60,7 @@ const Login = () => {
           type: "error",
           text: error.message ?? "Failed to sign in",
         });
-      else navigate({ to: "/" });
+      else navigate({ to: "/dashboard" });
     }
 
     if (mode === "sign-up") {

@@ -3,6 +3,7 @@ import { prisma } from "@wishlist/database";
 import type { CreateItemDto, UpdateItemDto } from "@wishlist/types";
 import type { AuthVariables } from "../middleware/auth";
 import { getWishlistWithRole } from "../lib/wishlistAccess";
+import { auth } from "../auth";
 
 const items = new Hono<{ Variables: AuthVariables }>();
 
@@ -12,8 +13,8 @@ const items = new Hono<{ Variables: AuthVariables }>();
  */
 items.get("/", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    const userId = session?.user.id ?? null;
     const wishlistId = c.req.param("wishlistId");
 
     if (!wishlistId) {
@@ -42,8 +43,8 @@ items.get("/", async (c) => {
  */
 items.get("/:id", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    const userId = session?.user.id ?? null;
     const wishlistId = c.req.param("wishlistId");
     const id = c.req.param("id");
 
@@ -74,10 +75,10 @@ items.get("/:id", async (c) => {
  * POST /api/wishlists/:wishlistId/items
  * Create a new item
  */
-
 items.post("/", async (c) => {
   try {
-    const session = c.get("session");
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
     const userId = session.user.id;
     const wishlistId = c.req.param("wishlistId");
     const body = await c.req.json<CreateItemDto>();
@@ -134,8 +135,8 @@ items.post("/", async (c) => {
  */
 items.patch("/:id", async (c) => {
   try {
-    const session = c.get("session");
-    const userId = session.user.id;
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    const userId = session?.user.id ?? null;
     const wishlistId = c.req.param("wishlistId");
     const id = c.req.param("id");
     const body = await c.req.json<UpdateItemDto>();
@@ -183,7 +184,8 @@ items.patch("/:id", async (c) => {
  */
 items.delete("/:id", async (c) => {
   try {
-    const session = c.get("session");
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
     const userId = session.user.id;
     const wishlistId = c.req.param("wishlistId");
     const id = c.req.param("id");
