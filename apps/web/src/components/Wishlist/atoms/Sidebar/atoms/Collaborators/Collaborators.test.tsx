@@ -5,8 +5,12 @@ import { Collaborators } from "./Collaborators";
 import { useRemoveCollaborator } from "../../../../../../hooks/collaborators/useRemoveCollaborator";
 import { useUpdateCollaborator } from "../../../../../../hooks/collaborators/useUpdateCollaborator";
 
-vi.mock("../../../../../../hooks/collaborators/useRemoveCollaborator");
-vi.mock("../../../../../../hooks/collaborators/useUpdateCollaborator");
+vi.mock("../../../../../../hooks/collaborators/useRemoveCollaborator", () => ({
+  useRemoveCollaborator: vi.fn(),
+}));
+vi.mock("../../../../../../hooks/collaborators/useUpdateCollaborator", () => ({
+  useUpdateCollaborator: vi.fn(),
+}));
 
 const mockRemove = vi.fn();
 const mockUpdate = vi.fn();
@@ -31,10 +35,10 @@ const mockCollaborators = [
 beforeEach(() => {
   vi.mocked(useRemoveCollaborator).mockReturnValue({
     mutate: mockRemove,
-  } as any);
+  } as unknown as ReturnType<typeof useRemoveCollaborator>);
   vi.mocked(useUpdateCollaborator).mockReturnValue({
     mutate: mockUpdate,
-  } as any);
+  } as unknown as ReturnType<typeof useUpdateCollaborator>);
 });
 
 describe("Collaborators", () => {

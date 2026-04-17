@@ -7,9 +7,11 @@ import { useInvite } from "../../hooks/invites/useInvite";
 import { useJoinInvite } from "../../hooks/invites/useJoinInvite";
 import { useSession } from "../../lib/auth-client";
 
-vi.mock("../../hooks/invites/useInvite");
-vi.mock("../../hooks/invites/useJoinInvite");
-vi.mock("../../lib/auth-client");
+vi.mock("../../hooks/invites/useInvite", () => ({ useInvite: vi.fn() }));
+vi.mock("../../hooks/invites/useJoinInvite", () => ({
+  useJoinInvite: vi.fn(),
+}));
+vi.mock("../../lib/auth-client", () => ({ useSession: vi.fn() }));
 vi.mock("@tanstack/react-router", async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
@@ -49,6 +51,14 @@ const mockSession = {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+    session: {
+      id: "1",
+      userId: "user-1",
+      token: "token",
+      expiresAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   },
   isPending: false,
   isRefetching: false,
@@ -58,7 +68,9 @@ const mockSession = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(useJoinInvite).mockReturnValue({ mutate: mockJoin } as any);
+  vi.mocked(useJoinInvite).mockReturnValue({
+    mutate: mockJoin,
+  } as unknown as ReturnType<typeof useJoinInvite>);
 });
 
 describe("InvitePage", () => {
@@ -67,8 +79,10 @@ describe("InvitePage", () => {
       isLoading: true,
       isError: false,
       data: undefined,
-    } as any);
-    vi.mocked(useSession).mockReturnValue({ data: null } as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+    } as unknown as ReturnType<typeof useSession>);
 
     renderWithClient(<InvitePage token="test-token" />);
 
@@ -80,8 +94,10 @@ describe("InvitePage", () => {
       isLoading: false,
       isError: true,
       data: undefined,
-    } as any);
-    vi.mocked(useSession).mockReturnValue({ data: null } as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+    } as unknown as ReturnType<typeof useSession>);
 
     renderWithClient(<InvitePage token="test-token" />);
 
@@ -95,8 +111,10 @@ describe("InvitePage", () => {
       isLoading: false,
       isError: false,
       data: mockInvite,
-    } as any);
-    vi.mocked(useSession).mockReturnValue({ data: null } as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue({
+      data: null,
+    } as unknown as ReturnType<typeof useSession>);
 
     renderWithClient(<InvitePage token="test-token" />);
 
@@ -111,8 +129,10 @@ describe("InvitePage", () => {
       isLoading: false,
       isError: false,
       data: mockInvite,
-    } as any);
-    vi.mocked(useSession).mockReturnValue(mockSession as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue(
+      mockSession as unknown as ReturnType<typeof useSession>,
+    );
 
     renderWithClient(<InvitePage token="test-token" />);
 
@@ -130,8 +150,10 @@ describe("InvitePage", () => {
       isLoading: false,
       isError: false,
       data: inviteWithoutDescription,
-    } as any);
-    vi.mocked(useSession).mockReturnValue(mockSession as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue(
+      mockSession as unknown as ReturnType<typeof useSession>,
+    );
 
     renderWithClient(<InvitePage token="test-token" />);
 
@@ -144,8 +166,10 @@ describe("InvitePage", () => {
       isLoading: false,
       isError: false,
       data: mockInvite,
-    } as any);
-    vi.mocked(useSession).mockReturnValue(mockSession as any);
+    } as unknown as ReturnType<typeof useInvite>);
+    vi.mocked(useSession).mockReturnValue(
+      mockSession as unknown as ReturnType<typeof useSession>,
+    );
 
     renderWithClient(<InvitePage token="test-token" />);
 
