@@ -84,16 +84,16 @@ model Item {
   id        String   @id @default(uuid())
   name      String
   price     Float
-  currency  String
+  currency  String?
   status    String   @default("want")
-  link      String
+  link      String?
   image     String   @default("Image")
   wishlistId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // relations
-  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 }
 
 model Collaborator {
@@ -106,7 +106,7 @@ model Collaborator {
 
   // relations
   user  User  @relation("CollaboratorOnWishlists", fields: [userId], references: [id])
-  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 }
 
 model InviteLink {
@@ -117,5 +117,5 @@ model InviteLink {
   createdAt DateTime @default(now())
 
   // relations
-  wishlist Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 }

@@ -3,10 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 import { Wishlist } from "./Wishlist";
 import { renderWithClient } from "../../test/utils";
-import { getItems } from "../../api/items";
-import { deleteItem, updateItem, createItem } from "../../api/items";
+import { getItems, deleteItem, updateItem, createItem } from "../../api/items";
 import { getWishlist } from "../../api/wishlists";
-import { useSession } from "../../lib/auth-client";
 
 const mockWishlist = {
   id: "test-wishlist-id",
@@ -16,31 +14,7 @@ const mockWishlist = {
   ownerId: "user-1",
   createdAt: "2024-01-01",
   updatedAt: "2024-01-01",
-};
-
-const mockSession = {
-  data: {
-    user: {
-      id: "user-1",
-      name: "Test User",
-      email: "test@test.com",
-      emailVerified: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    session: {
-      id: "1",
-      userId: "user-1",
-      token: "token",
-      expiresAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  },
-  isPending: false,
-  isRefetching: false,
-  error: null,
-  refetch: vi.fn(),
+  role: "owner" as const,
 };
 
 const mockItem = {
@@ -55,9 +29,6 @@ const mockItem = {
 
 vi.mock("../../api/items");
 vi.mock("../../api/wishlists");
-vi.mock("../../lib/auth-client", () => ({
-  useSession: vi.fn(),
-}));
 
 beforeEach(() => {
   vi.mocked(getItems).mockResolvedValue([mockItem]);
@@ -65,7 +36,6 @@ beforeEach(() => {
   vi.mocked(updateItem).mockResolvedValue(mockItem);
   vi.mocked(createItem).mockResolvedValue(mockItem);
   vi.mocked(getWishlist).mockResolvedValue(mockWishlist);
-  vi.mocked(useSession).mockReturnValue(mockSession);
 });
 
 describe("Wishlist", () => {

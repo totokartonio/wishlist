@@ -1,10 +1,10 @@
-import type { Wishlist } from "@wishlist/types";
+import type { WishlistWithRole } from "@wishlist/types";
 import { Link } from "@tanstack/react-router";
 
 type Props = {
-  wishlists: Wishlist[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  wishlists: WishlistWithRole[];
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 };
 
 const WishlistsTable = ({ onEdit, onDelete, wishlists }: Props) => {
@@ -15,7 +15,7 @@ const WishlistsTable = ({ onEdit, onDelete, wishlists }: Props) => {
           <th>Name</th>
           <th>Description</th>
           <th>Visibility</th>
-          <th>Actions</th>
+          {onEdit && onDelete && <th>Actions</th>}
         </tr>
       </thead>
       <tbody>
@@ -34,10 +34,12 @@ const WishlistsTable = ({ onEdit, onDelete, wishlists }: Props) => {
               {wishlist.visibility.charAt(0).toUpperCase() +
                 wishlist.visibility.slice(1)}
             </td>
-            <td>
-              <button onClick={() => onEdit(wishlist.id)}>Edit</button>
-              <button onClick={() => onDelete(wishlist.id)}>Delete</button>
-            </td>
+            {onEdit && onDelete && (
+              <td>
+                <button onClick={() => onEdit(wishlist.id)}>Edit</button>
+                <button onClick={() => onDelete(wishlist.id)}>Delete</button>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>

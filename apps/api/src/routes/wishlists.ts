@@ -3,6 +3,7 @@ import { prisma } from "@wishlist/database";
 import type { AuthVariables } from "../middleware/auth";
 import { getWishlistWithRole } from "../lib/wishlistAccess";
 import { auth } from "../auth";
+import type { WishlistRole } from "@wishlist/types";
 
 const wishlists = new Hono<{ Variables: AuthVariables }>();
 
@@ -11,12 +12,27 @@ wishlists.get("/", async (c) => {
     const session = await auth.api.getSession({ headers: c.req.raw.headers });
     if (!session) return c.json({ error: "Unauthorized" }, 401);
 
-    const userWishlists = await prisma.wishlist.findMany({
-      where: { ownerId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    });
+    const [ownedWishlists, collaboratedWishlists] = await Promise.all([
+      prisma.wishlist.findMany({
+        where: { ownerId: session.user.id },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.collaborator.findMany({
+        where: { userId: session.user.id },
+        include: { wishlist: true },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    return c.json(userWishlists);
+    const result = [
+      ...ownedWishlists.map((w) => ({ ...w, role: "owner" as const })),
+      ...collaboratedWishlists.map((c) => ({
+        ...c.wishlist,
+        role: c.role as WishlistRole,
+      })),
+    ];
+
+    return c.json(result);
   } catch (error) {
     console.error("Error fetching wishlists:", error);
     return c.json({ error: "Failed to fetch wishlists" }, 500);
@@ -35,7 +51,7 @@ wishlists.get("/:wishlistId", async (c) => {
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (!role) return c.json({ error: "Forbidden" }, 403);
 
-    return c.json(wishlist);
+    return c.json({ ...wishlist, role });
   } catch (error) {
     console.error("Error fetching wishlist:", error);
     return c.json({ error: "Failed to fetch wishlist" }, 500);

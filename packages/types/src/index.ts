@@ -5,7 +5,20 @@ export const ITEM_STATUSES = [
   "reserved",
 ] as const;
 
-export const CURRENCIES = ["USD", "EUR", "RUB"] as const;
+export const CURRENCIES = [
+  "USD",
+  "EUR",
+  "RUB",
+  "GBP",
+  "HUF",
+  "TRY",
+  "UAH",
+  "CZK",
+  "PLN",
+  "CHF",
+  "JPY",
+  "CNY",
+] as const;
 
 export type ItemStatus = (typeof ITEM_STATUSES)[number];
 export type Currency = (typeof CURRENCIES)[number];
@@ -15,7 +28,7 @@ export type Item = {
   image: string;
   name: string;
   price: number;
-  currency: Currency;
+  currency: Currency | null;
   status: ItemStatus;
   link: string;
 };
@@ -35,6 +48,12 @@ export type Wishlist = {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type WishlistRole = "owner" | "editor" | "viewer" | null;
+
+export type WishlistWithRole = Wishlist & {
+  role: WishlistRole;
 };
 
 export type CreateWishlistDto = {

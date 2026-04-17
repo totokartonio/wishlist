@@ -37,21 +37,19 @@ describe("ItemsTable", () => {
         onEdit={mockOnEdit}
         onDelete={mockOnDelete}
         onChangeStatus={mockOnChangeStatus}
+        canEdit={true}
       />,
     );
 
-    //Text
     expect(screen.getByText("Sony headphones")).toBeInTheDocument();
     expect(screen.getByText("€100")).toBeInTheDocument();
     expect(screen.getByText("USB Cable")).toBeInTheDocument();
     expect(screen.getByText("$10")).toBeInTheDocument();
 
-    //Status
     const statusSelects = screen.getAllByTestId("items-table-status");
     expect(statusSelects[0]).toHaveValue("want");
     expect(statusSelects[1]).toHaveValue("bought");
 
-    //Links
     const links = screen.getAllByTestId("items-table-link");
     expect(links[0]).toHaveAttribute("href", "https://amazon.de");
     expect(links[0]).toHaveAttribute("target", "_blank");
@@ -59,17 +57,14 @@ describe("ItemsTable", () => {
     expect(links[1]).toHaveAttribute("target", "_blank");
   });
 
-  test("renders table headers", () => {
-    const mockOnEdit = vi.fn();
-    const mockOnDelete = vi.fn();
-    const mockOnChangeStatus = vi.fn();
-
+  test("renders table headers with actions when canEdit", () => {
     render(
       <ItemsTable
         items={mockItems}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-        onChangeStatus={mockOnChangeStatus}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onChangeStatus={vi.fn()}
+        canEdit={true}
       />,
     );
 
@@ -80,18 +75,33 @@ describe("ItemsTable", () => {
     expect(screen.getByText("Actions")).toBeInTheDocument();
   });
 
+  test("hides actions column when canEdit is false", () => {
+    render(
+      <ItemsTable
+        items={mockItems}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onChangeStatus={vi.fn()}
+        canEdit={false}
+      />,
+    );
+
+    expect(screen.queryByText("Actions")).not.toBeInTheDocument();
+    expect(screen.queryAllByTestId("items-table-edit-button")).toHaveLength(0);
+    expect(screen.queryAllByTestId("items-table-delete-button")).toHaveLength(0);
+  });
+
   test("calls onEdit when edit button clicked", async () => {
     const user = userEvent.setup();
     const mockOnEdit = vi.fn();
-    const mockOnDelete = vi.fn();
-    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
         onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-        onChangeStatus={mockOnChangeStatus}
+        onDelete={vi.fn()}
+        onChangeStatus={vi.fn()}
+        canEdit={true}
       />,
     );
 
@@ -103,36 +113,32 @@ describe("ItemsTable", () => {
 
   test("calls onDelete when delete button clicked", async () => {
     const user = userEvent.setup();
-    const mockOnEdit = vi.fn();
     const mockOnDelete = vi.fn();
-    const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
-        onEdit={mockOnEdit}
+        onEdit={vi.fn()}
         onDelete={mockOnDelete}
-        onChangeStatus={mockOnChangeStatus}
+        onChangeStatus={vi.fn()}
+        canEdit={true}
       />,
     );
 
-    const editButtons = screen.getAllByTestId("items-table-delete-button");
-    await user.click(editButtons[0]);
+    const deleteButtons = screen.getAllByTestId("items-table-delete-button");
+    await user.click(deleteButtons[0]);
 
     expect(mockOnDelete).toHaveBeenCalledWith("1");
   });
 
   test("renders correct number of rows", () => {
-    const mockOnEdit = vi.fn();
-    const mockOnDelete = vi.fn();
-    const mockOnChangeStatus = vi.fn();
-
     render(
       <ItemsTable
         items={mockItems}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-        onChangeStatus={mockOnChangeStatus}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onChangeStatus={vi.fn()}
+        canEdit={true}
       />,
     );
 
@@ -141,16 +147,13 @@ describe("ItemsTable", () => {
   });
 
   test("renders empty table when no items", () => {
-    const mockOnEdit = vi.fn();
-    const mockOnDelete = vi.fn();
-    const mockOnChangeStatus = vi.fn();
-
     render(
       <ItemsTable
         items={[]}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
-        onChangeStatus={mockOnChangeStatus}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+        onChangeStatus={vi.fn()}
+        canEdit={true}
       />,
     );
 
@@ -164,23 +167,19 @@ describe("ItemsTable", () => {
 
   test("changes status of item", async () => {
     const user = userEvent.setup();
-    const mockOnEdit = vi.fn();
-    const mockOnDelete = vi.fn();
     const mockOnChangeStatus = vi.fn();
 
     render(
       <ItemsTable
         items={mockItems}
-        onEdit={mockOnEdit}
-        onDelete={mockOnDelete}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
         onChangeStatus={mockOnChangeStatus}
+        canEdit={true}
       />,
     );
 
     const statusSelects = screen.getAllByTestId("items-table-status");
-    expect(statusSelects[0]).toHaveValue("want");
-    expect(statusSelects[1]).toHaveValue("bought");
-
     await user.selectOptions(statusSelects[0], "bought");
 
     expect(mockOnChangeStatus).toHaveBeenCalledTimes(1);

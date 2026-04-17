@@ -18,6 +18,9 @@ const Dashboard = () => {
   const { mutate: updateWishlist } = useUpdateWishlist();
   const { mutate: deleteWishlist } = useDeleteWishlist();
 
+  const ownedWishlists = wishlists.filter((w) => w.role === "owner");
+  const sharedWishlists = wishlists.filter((w) => w.role !== "owner");
+
   const editingWishlist = editingWishlistId
     ? wishlists.find((wishlist) => wishlist.id === editingWishlistId)
     : null;
@@ -61,7 +64,7 @@ const Dashboard = () => {
     <>
       <h1>Dashboard</h1>
       <div>
-        <h2>Wishlists</h2>
+        <h2>My Wishlists</h2>
         <button
           onClick={() => {
             setEditingWishlistId(null);
@@ -71,11 +74,17 @@ const Dashboard = () => {
           Create wishlist
         </button>
         <WishlistsTable
-          wishlists={wishlists}
+          wishlists={ownedWishlists}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </div>
+      {sharedWishlists.length > 0 && (
+        <div>
+          <h2>Shared with me</h2>
+          <WishlistsTable wishlists={sharedWishlists} />
+        </div>
+      )}
       {showModal && (
         <AddWishlistModal
           wishlist={editingWishlist || undefined}
