@@ -5,6 +5,7 @@ import { Wishlist } from "./Wishlist";
 import { renderWithClient } from "../../test/utils";
 import { getItems, deleteItem, updateItem, createItem } from "../../api/items";
 import { getWishlist } from "../../api/wishlists";
+import { getUser } from "../../api/users";
 
 const mockWishlist = {
   id: "test-wishlist-id",
@@ -29,6 +30,10 @@ const mockItem = {
 
 vi.mock("../../api/items");
 vi.mock("../../api/wishlists");
+vi.mock("../../api/users");
+vi.mock("./atoms/Sidebar", () => ({
+  default: () => <div data-testid="wishlist-sidebar" />,
+}));
 
 beforeEach(() => {
   vi.mocked(getItems).mockResolvedValue([mockItem]);
@@ -36,6 +41,7 @@ beforeEach(() => {
   vi.mocked(updateItem).mockResolvedValue(mockItem);
   vi.mocked(createItem).mockResolvedValue(mockItem);
   vi.mocked(getWishlist).mockResolvedValue(mockWishlist);
+  vi.mocked(getUser).mockResolvedValue({ id: "user-1", name: "Test User" });
 });
 
 describe("Wishlist", () => {

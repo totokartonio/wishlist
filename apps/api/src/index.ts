@@ -7,6 +7,7 @@ import items from "./routes/items";
 import collaborators from "./routes/collaborators";
 import invites from "./routes/invites";
 import publicInvites from "./routes/publicInvites";
+import users from "./routes/users";
 
 const app = new Hono();
 
@@ -41,6 +42,7 @@ app.route("/api/wishlists/:wishlistId/items", items);
 app.route("/api/wishlists/:wishlistId/collaborators", collaborators);
 app.route("/api/wishlists/:wishlistId/invites", invites);
 app.route("/api/invites", publicInvites);
+app.route("/api/users", users);
 
 app.get("/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
