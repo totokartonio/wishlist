@@ -13,6 +13,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WishlistsWishlistIdRouteImport } from './routes/wishlists.$wishlistId'
+import { Route as UsersUserIdRouteImport } from './routes/users.$userId'
 import { Route as InvitesTokenRouteImport } from './routes/invites.$token'
 
 const LoginRoute = LoginRouteImport.update({
@@ -35,6 +36,11 @@ const WishlistsWishlistIdRoute = WishlistsWishlistIdRouteImport.update({
   path: '/wishlists/$wishlistId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersUserIdRoute = UsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InvitesTokenRoute = InvitesTokenRouteImport.update({
   id: '/invites/$token',
   path: '/invites/$token',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/users/$userId': typeof UsersUserIdRoute
   '/wishlists/$wishlistId': typeof WishlistsWishlistIdRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/users/$userId': typeof UsersUserIdRoute
   '/wishlists/$wishlistId': typeof WishlistsWishlistIdRoute
 }
 export interface FileRoutesById {
@@ -61,6 +69,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/invites/$token': typeof InvitesTokenRoute
+  '/users/$userId': typeof UsersUserIdRoute
   '/wishlists/$wishlistId': typeof WishlistsWishlistIdRoute
 }
 export interface FileRouteTypes {
@@ -70,6 +79,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/invites/$token'
+    | '/users/$userId'
     | '/wishlists/$wishlistId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -77,6 +87,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/invites/$token'
+    | '/users/$userId'
     | '/wishlists/$wishlistId'
   id:
     | '__root__'
@@ -84,6 +95,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/invites/$token'
+    | '/users/$userId'
     | '/wishlists/$wishlistId'
   fileRoutesById: FileRoutesById
 }
@@ -92,6 +104,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   InvitesTokenRoute: typeof InvitesTokenRoute
+  UsersUserIdRoute: typeof UsersUserIdRoute
   WishlistsWishlistIdRoute: typeof WishlistsWishlistIdRoute
 }
 
@@ -125,6 +138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WishlistsWishlistIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users/$userId': {
+      id: '/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/users/$userId'
+      preLoaderRoute: typeof UsersUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invites/$token': {
       id: '/invites/$token'
       path: '/invites/$token'
@@ -140,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   InvitesTokenRoute: InvitesTokenRoute,
+  UsersUserIdRoute: UsersUserIdRoute,
   WishlistsWishlistIdRoute: WishlistsWishlistIdRoute,
 }
 export const routeTree = rootRouteImport

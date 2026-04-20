@@ -26,6 +26,7 @@ const mockCollaborators: Collaborator[] = [
 ];
 
 const baseProps = {
+  owner: { id: "user-1", name: "Test User" },
   name: "Test Wishlist",
   visibility: "private" as const,
   created: "2024-01-01",

@@ -11,6 +11,7 @@ import { useDeleteItem } from "../../hooks/items/useDeleteItem";
 import Sidebar from "./atoms/Sidebar";
 import { useCollaborators } from "../../hooks/collaborators/useCollaborators";
 import { useCreateInvite } from "../../hooks/invites/useCreateInvite";
+import { useGetUser } from "../../hooks/users/useGetUser";
 import { ApiError } from "../../lib/apiError";
 
 type Props = {
@@ -37,6 +38,7 @@ const Wishlist = ({ wishlistId }: Props) => {
 
   const enabled = !!wishlist;
   const { data: collaborators } = useCollaborators(wishlistId, enabled);
+  const { data: user } = useGetUser(wishlist?.ownerId ?? "", enabled);
 
   const { mutate: createInvite } = useCreateInvite();
 
@@ -123,6 +125,7 @@ const Wishlist = ({ wishlistId }: Props) => {
       {showSidebar && (
         <Sidebar
           isOwner={isOwner}
+          owner={user}
           name={wishlist.name}
           visibility={wishlist.visibility}
           created={wishlist.createdAt}

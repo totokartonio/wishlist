@@ -1,10 +1,15 @@
-import type { Collaborator, WishlistVisibility } from "@wishlist/types";
+import type {
+  Collaborator,
+  UserProfile,
+  WishlistVisibility,
+} from "@wishlist/types";
 import Info from "./atoms/Info";
 import Collaborators from "./atoms/Collaborators";
 import InviteLink from "./atoms/InviteLink";
 
 type Props = {
   isOwner: boolean;
+  owner?: UserProfile;
   name: string;
   visibility: WishlistVisibility;
   created: string;
@@ -17,6 +22,7 @@ type Props = {
 
 const Sidebar = ({
   isOwner,
+  owner,
   name,
   visibility,
   created,
@@ -28,7 +34,12 @@ const Sidebar = ({
 }: Props) => {
   return (
     <aside data-testid="wishlist-sidebar">
-      <Info name={name} visibility={visibility} created={created} />
+      <Info
+        name={name}
+        visibility={visibility}
+        created={created}
+        owner={owner}
+      />
       <Collaborators
         isOwner={isOwner}
         collaborators={collaborators}

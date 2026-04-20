@@ -93,3 +93,5 @@ export type InviteWithWishlist = InviteLink & {
     visibility: WishlistVisibility;
   };
 };
+
+export type UserProfile = { id: string; name: string };
