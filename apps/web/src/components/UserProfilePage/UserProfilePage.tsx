@@ -18,7 +18,7 @@ const UserProfilePage = ({ userId }: Props) => {
 
   useEffect(() => {
     if (user && user.id === session?.user.id) navigate({ to: "/dashboard" });
-  }, [user, session]);
+  }, [user, session, navigate]);
 
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Something went wrong.</p>;

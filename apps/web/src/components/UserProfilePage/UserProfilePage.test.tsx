@@ -3,6 +3,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 import { UserProfilePage } from "./UserProfilePage";
 import { renderWithClient } from "../../test/utils";
 import { getUser, getUserWishlists } from "../../api/users";
+import type { UserProfile, Wishlist } from "@wishlist/types";
 
 vi.mock("../../api/users");
 vi.mock("../../lib/auth-client", () => ({
@@ -17,13 +18,13 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
-const mockUser = { id: "user-1", name: "Jane Doe" };
-const mockWishlists = [
+const mockUser: UserProfile = { id: "user-1", name: "Jane Doe" };
+const mockWishlists: Wishlist[] = [
   {
     id: "w-1",
     name: "Birthday Wishlist",
     description: null,
-    visibility: "public" as const,
+    visibility: "public",
     ownerId: "user-1",
     createdAt: "2024-01-01",
     updatedAt: "2024-01-01",
@@ -60,14 +61,27 @@ describe("UserProfilePage", () => {
   });
 
   test("shows not found when user is null", async () => {
-    vi.mocked(getUser).mockResolvedValue(null as any);
+    vi.mocked(getUser).mockResolvedValue(
+      null as unknown as ReturnType<typeof getUser> extends Promise<infer T>
+        ? T
+        : never,
+    );
+    renderWithClient(<UserProfilePage userId="user-1" />);
+
+    expect(await screen.findByText("User doesn't exist")).toBeInTheDocument();
+  });
+
+  test("shows not found when user is null", async () => {
+    vi.mocked(getUser).mockResolvedValue(null as unknown as UserProfile);
     renderWithClient(<UserProfilePage userId="user-1" />);
 
     expect(await screen.findByText("User doesn't exist")).toBeInTheDocument();
   });
 
   test("shows no wishlists message when wishlists are undefined", async () => {
-    vi.mocked(getUserWishlists).mockResolvedValue(undefined as any);
+    vi.mocked(getUserWishlists).mockResolvedValue(
+      undefined as unknown as Wishlist[],
+    );
     renderWithClient(<UserProfilePage userId="user-1" />);
 
     expect(await screen.findByText("No wishlists found")).toBeInTheDocument();
