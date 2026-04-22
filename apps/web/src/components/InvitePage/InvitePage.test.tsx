@@ -118,9 +118,8 @@ describe("InvitePage", () => {
 
     renderWithClient(<InvitePage token="test-token" />);
 
-    expect(
-      screen.getByText("To join Test Wishlist you need to log in"),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/To join.*you need to log in/)).toBeInTheDocument();
+    expect(screen.getByText("Test Wishlist")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
   });
 

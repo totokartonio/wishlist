@@ -1,0 +1,37 @@
+.card {
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+
+  &.flat {
+    &.primary {
+      background-color: var(--color-surface-primary);
+      border: 1px solid var(--color-border-primary);
+    }
+    &.secondary {
+      background-color: var(--color-surface-secondary);
+      border: 1px solid var(--color-border-secondary);
+    }
+    &.neutral {
+      background-color: var(--color-background);
+      border: 1px solid var(--color-neutral-200);
+    }
+  }
+
+  &.raised {
+    &.primary {
+      background-color: var(--color-primary);
+      box-shadow: var(--shadow-card-primary);
+    }
+    &.secondary {
+      background-color: var(--color-secondary);
+      box-shadow: var(--shadow-card-secondary);
+    }
+    &.neutral {
+      background-color: var(--color-neutral-400);
+      box-shadow:
+        inset 2px 2px 5px var(--color-neutral-100),
+        inset -2px -2px 5px var(--color-neutral-700),
+        var(--shadow-md);
+    }
+  }
+}

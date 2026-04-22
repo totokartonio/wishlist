@@ -3,7 +3,8 @@ import { useGetUserWishlist } from "../../hooks/users/useGetUserWishlists";
 import { useNavigate } from "@tanstack/react-router";
 import { useSession } from "../../lib/auth-client";
 import { useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import styles from "./UserProfilePage.module.css";
+import WishlistsGrid from "../WishlistsGrid";
 
 type Props = {
   userId: string;
@@ -25,28 +26,23 @@ const UserProfilePage = ({ userId }: Props) => {
   if (!user) return <p>User doesn't exist</p>;
 
   return (
-    <>
+    <div className={styles.wrapper}>
       <h1>{user.name}</h1>
-      <div>
+      <section className={styles.section}>
         <h2>Wishlists</h2>
         {wishlists ? (
-          <ul>
-            {wishlists.map((wishlist) => (
-              <li key={wishlist.id}>
-                <Link
-                  to="/wishlists/$wishlistId"
-                  params={{ wishlistId: wishlist.id }}
-                >
-                  {wishlist.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <WishlistsGrid
+            color="primary"
+            wishlists={wishlists.map((w) => ({
+              ...w,
+              role: "viewer" as const,
+            }))}
+          />
         ) : (
           "No wishlists found"
         )}
-      </div>
-    </>
+      </section>
+    </div>
   );
 };
 

@@ -19,6 +19,22 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
+vi.mock("./LogOutModal", () => ({
+  default: ({
+    onClose,
+    onLogout,
+  }: {
+    onClose: () => void;
+    onLogout: () => void;
+  }) => (
+    <div>
+      <h2>Log out</h2>
+      <button onClick={onClose}>No</button>
+      <button onClick={onLogout}>Yes</button>
+    </div>
+  ),
+}));
+
 const mockNavigate = vi.fn();
 
 import { useSession, signOut } from "../../lib/auth-client";

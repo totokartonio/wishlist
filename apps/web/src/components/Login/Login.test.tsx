@@ -4,16 +4,15 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 import { Login } from "./Login";
 
 vi.mock("../../lib/auth-client", () => ({
-  signIn: {
-    email: vi.fn(),
-  },
-  signUp: {
-    email: vi.fn(),
-  },
+  signIn: { email: vi.fn() },
+  signUp: { email: vi.fn() },
 }));
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
+    <a href={to}>{children}</a>
+  ),
 }));
 
 const mockNavigate = vi.fn();
@@ -42,14 +41,14 @@ describe("Login", () => {
     ).toBeInTheDocument();
   });
 
-  test("navigates to / on successful sign-in", async () => {
+  test("navigates to dashboard on successful sign-in", async () => {
     vi.mocked(signIn.email).mockResolvedValue({ error: null, data: {} });
 
     const user = userEvent.setup();
     render(<Login />);
 
     await user.type(screen.getByLabelText("Email:"), "test@test.com");
-    await user.type(screen.getByTestId("password-input"), "password123");
+    await user.type(screen.getByLabelText("Password:"), "password123");
     await user.click(screen.getByRole("button", { name: "Sign In" }));
 
     expect(mockNavigate).toHaveBeenCalledWith({ to: "/dashboard" });
@@ -65,7 +64,7 @@ describe("Login", () => {
     render(<Login />);
 
     await user.type(screen.getByLabelText("Email:"), "test@test.com");
-    await user.type(screen.getByTestId("password-input"), "password123");
+    await user.type(screen.getByLabelText("Password:"), "password123");
     await user.click(screen.getByRole("button", { name: "Sign In" }));
 
     expect(await screen.findByText("Invalid credentials")).toBeInTheDocument();
@@ -78,10 +77,9 @@ describe("Login", () => {
     render(<Login />);
 
     await user.click(screen.getByTestId("change-mode"));
-
     await user.type(screen.getByLabelText("Name:"), "John Smith");
     await user.type(screen.getByLabelText("Email:"), "test@test.com");
-    await user.type(screen.getByTestId("password-input"), "password123");
+    await user.type(screen.getByLabelText("Password:"), "password123");
     await user.click(screen.getByRole("button", { name: "Sign Up" }));
 
     expect(
@@ -99,10 +97,9 @@ describe("Login", () => {
     render(<Login />);
 
     await user.click(screen.getByTestId("change-mode"));
-
     await user.type(screen.getByLabelText("Name:"), "John Smith");
     await user.type(screen.getByLabelText("Email:"), "test@test.com");
-    await user.type(screen.getByTestId("password-input"), "password123");
+    await user.type(screen.getByLabelText("Password:"), "password123");
     await user.click(screen.getByRole("button", { name: "Sign Up" }));
 
     expect(await screen.findByText("Email already exists")).toBeInTheDocument();

@@ -1,0 +1,48 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  padding: var(--spacing-xs);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-neutral-300);
+  }
+}
+
+.list {
+  gap: var(--spacing-xs);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin-bottom: var(--spacing-xl);
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.icon {
+  color: var(--color-neutral-400);
+}

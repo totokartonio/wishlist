@@ -95,3 +95,10 @@ export type InviteWithWishlist = InviteLink & {
 };
 
 export type UserProfile = { id: string; name: string };
+
+export type ModalMode =
+  | "addItem"
+  | "editWishlist"
+  | "deleteItem"
+  | "deleteWishlist"
+  | null;

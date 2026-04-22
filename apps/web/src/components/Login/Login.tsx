@@ -4,6 +4,7 @@ import { SignInForm } from "./atoms/SignInForm";
 import { SignUpForm } from "./atoms/SignUpForm";
 import { useNavigate } from "@tanstack/react-router";
 import styles from "./Login.module.css";
+import Card from "../ui/Card";
 
 type MessageType = "error" | "success" | "info";
 
@@ -46,7 +47,7 @@ const Login = () => {
     return Object.values(errors).some(Boolean);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (hasErrors()) return;
 
@@ -136,32 +137,34 @@ const Login = () => {
   };
 
   return (
-    <>
-      <h1>Login</h1>
-      {mode === "sign-in" ? (
-        <SignInForm
-          email={formData.email}
-          password={formData.password}
-          fieldErrors={fieldErrors}
-          onSubmit={handleSubmit}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onChangeMode={hanldeChangeMode}
-        />
-      ) : (
-        <SignUpForm
-          email={formData.email}
-          password={formData.password}
-          name={formData.name}
-          fieldErrors={fieldErrors}
-          onSubmit={handleSubmit}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onChangeMode={hanldeChangeMode}
-        />
-      )}
-      {message && <div className={styles[message.type]}>{message.text}</div>}
-    </>
+    <div className={styles.page}>
+      <Card color="secondary" className={styles.card}>
+        <h1>{mode === "sign-in" ? "Sign In" : "Sign Up"}</h1>
+        {mode === "sign-in" ? (
+          <SignInForm
+            email={formData.email}
+            password={formData.password}
+            fieldErrors={fieldErrors}
+            onSubmit={handleSubmit}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onChangeMode={hanldeChangeMode}
+          />
+        ) : (
+          <SignUpForm
+            email={formData.email}
+            password={formData.password}
+            name={formData.name}
+            fieldErrors={fieldErrors}
+            onSubmit={handleSubmit}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onChangeMode={hanldeChangeMode}
+          />
+        )}
+        {message && <div className={styles[message.type]}>{message.text}</div>}
+      </Card>
+    </div>
   );
 };
 
