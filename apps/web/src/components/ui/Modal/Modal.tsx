@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import styles from "./Modal.module.css";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { createPortal } from "react-dom";
+import Card from "../Card";
 
 type Props = {
   onClose: () => void;
@@ -17,19 +18,18 @@ const Modal = ({ onClose, children }: Props) => {
         role="presentation"
         data-testid="modal-backdrop"
       />
-      <div className={styles.modal}>
-        <div className={styles.container}>
-          <button
-            onClick={onClose}
-            className={styles.closeButton}
-            data-testid="modal-close-button"
-            aria-label="Close modal"
-          >
-            <XIcon size={18} />
-          </button>
-          {children}
-        </div>
-      </div>
+      <Card color="neutral" className={styles.modal}>
+        <button
+          onClick={onClose}
+          className={styles.closeButton}
+          data-testid="modal-close-button"
+          aria-label="Close modal"
+        >
+          <XIcon size={18} />
+        </button>
+
+        {children}
+      </Card>
     </>,
     document.body,
   );

@@ -1,4 +1,9 @@
 import { useState } from "react";
+import styles from "../Login.module.css";
+import Input from "../../../components/ui/Input";
+import { Button } from "../../../components/ui/Button/Button";
+import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
+import { EyeSlashIcon } from "@phosphor-icons/react/dist/csr/EyeSlash";
 
 type Props = {
   email: string;
@@ -27,85 +32,83 @@ const SignUpForm = ({
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
 
+  const rightElement = (
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      aria-label={showPassword ? "Hide password" : "Show password"}
+      data-testid="show-password"
+      className={styles.iconButton}
+    >
+      {showPassword ? <EyeSlashIcon size={18} /> : <EyeIcon size={18} />}
+    </button>
+  );
+
   return (
-    <>
-      <form onSubmit={(event) => onSubmit(event)} aria-label="Sign up form">
-        <label htmlFor="name">
-          Name:
-          <input
-            id="name"
-            type="text"
-            value={name}
-            name="name"
-            onChange={onChange}
-            onBlur={onBlur}
-            required
-            placeholder="John Smith"
-            aria-describedby={fieldErrors.name ? "name-error" : undefined}
-          />
-          {fieldErrors.name && (
-            <span id="name-error" role="alert">
-              {fieldErrors.name}
-            </span>
-          )}
-        </label>
-        <label htmlFor="email">
-          Email:
-          <input
-            id="email"
-            type="email"
-            placeholder="your@mail.com"
-            value={email}
-            name="email"
-            onChange={onChange}
-            onBlur={onBlur}
-            required
-            aria-describedby={fieldErrors.email ? "email-error" : undefined}
-          />
-          {fieldErrors.email && (
-            <span id="email-error" role="alert">
-              {fieldErrors.email}
-            </span>
-          )}
-        </label>
-        <label htmlFor="password">
-          Password:
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            name="password"
-            onChange={onChange}
-            onBlur={onBlur}
-            required
-            aria-describedby={
-              fieldErrors.password ? "password-error" : undefined
-            }
-            data-testid="password-input"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            data-testid="show-password"
-          >
-            Show password
-          </button>
-          {fieldErrors.password && (
-            <span id="password-error" role="alert">
-              {fieldErrors.password}
-            </span>
-          )}
-        </label>
-        <button type="submit">Sign Up</button>
+    <div className={styles.formContainer}>
+      <form
+        onSubmit={(event) => onSubmit(event)}
+        aria-label="Sign up form"
+        className={styles.form}
+      >
+        <Input
+          label="Name:"
+          id="name"
+          type="text"
+          value={name}
+          name="name"
+          onChange={onChange}
+          onBlur={onBlur}
+          required
+          placeholder="John Smith"
+          error={fieldErrors.name}
+        />
+        <Input
+          label="Email:"
+          id="email"
+          type="email"
+          placeholder="your@mail.com"
+          value={email}
+          name="email"
+          onChange={onChange}
+          onBlur={onBlur}
+          required
+          error={fieldErrors.email}
+        />
+        <Input
+          label="Password:"
+          id="password"
+          type={showPassword ? "text" : "password"}
+          value={password}
+          name="password"
+          onChange={onChange}
+          onBlur={onBlur}
+          required
+          error={fieldErrors.password}
+          rightElement={rightElement}
+        />
+        <Button
+          variant="raised"
+          color="primary"
+          type="submit"
+          className={styles.submitButton}
+        >
+          Sign Up
+        </Button>
       </form>
-      <p>
+      <div className={styles.switch}>
         Already have an account?{" "}
-        <button type="button" onClick={onChangeMode} data-testid="change-mode">
+        <Button
+          variant="ghost"
+          color="secondary"
+          type="button"
+          onClick={onChangeMode}
+          data-testid="change-mode"
+        >
           Sign in
-        </button>
-      </p>
-    </>
+        </Button>
+      </div>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Wishlist from "../components/Wishlist";
+import Wishlist from "../components/WishlistPage";
 
 export const Route = createFileRoute("/wishlists/$wishlistId")({
   component: RouteComponent,

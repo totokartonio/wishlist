@@ -1,0 +1,43 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding-block: var(--spacing-xl);
+  justify-content: center;
+}
+
+.button {
+  border: none;
+  background: none;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--radius-lg);
+  padding-block: var(--spacing-xl);
+  padding-inline: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  color: var(--color-neutral-700);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+
+  .icon {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+  }
+
+  .url {
+    color: inherit;
+    text-align: start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  &:hover {
+    color: var(--color-neutral-500);
+  }
+}

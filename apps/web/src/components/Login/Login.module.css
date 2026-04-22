@@ -1,11 +1,61 @@
 .error {
-  color: tomato;
+  color: var(--color-error);
 }
 
 .info {
-  color: goldenrod;
+  color: var(--color-yellow-500);
 }
 
 .success {
-  color: turquoise;
+  color: var(--color-green-500);
+}
+
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.iconButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: var(--color-neutral-400);
+}
+
+.submitButton {
+  width: 80%;
+  align-self: center;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  line-height: 1;
 }

@@ -19,23 +19,19 @@ const defaultProps = {
   onChangeMode: mockOnChangeMode,
 };
 
-const renderSignUpForm = (props = {}) => {
-  return render(<SignUpForm {...defaultProps} {...props} />);
-};
-
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 describe("SignUpForm", () => {
-  test("show log in form", () => {
-    renderSignUpForm();
+  test("show sign up form", () => {
+    render(<SignUpForm {...defaultProps} />);
 
     expect(
       screen.getByRole("form", { name: "Sign up form" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Email:")).toBeInTheDocument();
-    expect(screen.getByTestId("password-input")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password:")).toBeInTheDocument();
     expect(screen.getByLabelText("Name:")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign Up" })).toBeInTheDocument();
     expect(screen.getByTestId("show-password")).toBeInTheDocument();
@@ -43,27 +39,29 @@ describe("SignUpForm", () => {
   });
 
   test("show field errors", () => {
-    renderSignUpForm({
-      fieldErrors: {
-        email: "Email error",
-        password: "Password error",
-        name: "Name error",
-      },
-    });
+    render(
+      <SignUpForm
+        {...defaultProps}
+        fieldErrors={{
+          email: "Email error",
+          password: "Password error",
+          name: "Name error",
+        }}
+      />,
+    );
 
-    const rows = screen.getAllByRole("alert");
-    expect(rows).toHaveLength(3);
+    const alerts = screen.getAllByRole("alert");
+    expect(alerts).toHaveLength(3);
   });
 
   test("calls onChange when typing", async () => {
-    renderSignUpForm();
-
     const user = userEvent.setup();
+    render(<SignUpForm {...defaultProps} />);
 
     await user.type(screen.getByLabelText("Email:"), "test@test.com");
     expect(mockOnChange).toBeCalled();
 
-    await user.type(screen.getByTestId("password-input"), "password");
+    await user.type(screen.getByLabelText("Password:"), "password");
     expect(mockOnChange).toBeCalled();
 
     await user.type(screen.getByLabelText("Name:"), "name");
@@ -71,9 +69,8 @@ describe("SignUpForm", () => {
   });
 
   test("calls onBlur when leaving field", async () => {
-    renderSignUpForm();
-
     const user = userEvent.setup();
+    render(<SignUpForm {...defaultProps} />);
 
     await user.tab();
     await user.tab();
@@ -81,32 +78,33 @@ describe("SignUpForm", () => {
   });
 
   test("calls onSubmit when form submitted", async () => {
-    renderSignUpForm({
-      email: "test@test",
-      password: "password",
-      name: "John Smith",
-    });
-
     const user = userEvent.setup();
+    render(
+      <SignUpForm
+        {...defaultProps}
+        email="test@test.com"
+        password="password123"
+        name="John Smith"
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "Sign Up" }));
     expect(mockOnSubmit).toBeCalled();
   });
 
   test("calls onChangeMode when 'Sign in' clicked", async () => {
-    renderSignUpForm();
-
     const user = userEvent.setup();
+    render(<SignUpForm {...defaultProps} />);
 
     await user.click(screen.getByTestId("change-mode"));
     expect(mockOnChangeMode).toBeCalled();
   });
 
   test("toggles password visibility", async () => {
-    renderSignUpForm();
-
     const user = userEvent.setup();
-    const passwordInput = screen.getByTestId("password-input");
+    render(<SignUpForm {...defaultProps} />);
+
+    const passwordInput = screen.getByLabelText("Password:");
     const toggleButton = screen.getByTestId("show-password");
 
     expect(passwordInput).toHaveAttribute("type", "password");

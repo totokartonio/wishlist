@@ -1,0 +1,10 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.formError {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}

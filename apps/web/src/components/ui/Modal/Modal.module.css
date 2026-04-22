@@ -4,27 +4,37 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.177);
 }
 
 .modal {
   position: fixed;
-  background-color: var(--color-surface);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border-radius: var(--radius-lg);
-  padding: 20px;
   width: 100%;
   max-width: 500px;
-}
-
-.container {
-  display: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 .closeButton {
   position: absolute;
   top: 20px;
   right: 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: var(--color-primary);
+
+  &:hover {
+    color: var(--color-orange-300);
+  }
+
+  &:active {
+    transform: translateY(2px);
+  }
 }

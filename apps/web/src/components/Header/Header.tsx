@@ -3,6 +3,7 @@ import styles from "./Header.module.css";
 import { useSession, signOut } from "../../lib/auth-client";
 import { useState } from "react";
 import LogOutModal from "./LogOutModal";
+import { Button } from "../ui/Button/Button";
 
 const Header = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -27,14 +28,21 @@ const Header = () => {
 
   return (
     <div className={styles.header}>
-      <div>Logo</div>
+      <div className={styles.logo}>Logo</div>
       <nav className={styles.navBar}>
         {loggedIn && (
           <div>
             <Link to="/dashboard">{userName}</Link>
           </div>
         )}
-        <button onClick={handleClick}>{loggedIn ? "Log out" : "Log in"}</button>
+        <Button
+          onClick={handleClick}
+          size="sm"
+          variant={loggedIn ? "ghost" : "flat"}
+          color={loggedIn ? "secondary" : "primary"}
+        >
+          {loggedIn ? "Log out" : "Log in"}
+        </Button>
       </nav>
       {showModal && (
         <LogOutModal
