@@ -1,4 +1,4 @@
-import styles from "./AddItemModal.module.css";
+import styles from "./ItemModal.module.css";
 import { useState, type SubmitEventHandler } from "react";
 import { CURRENCIES, type CreateItemDto } from "@wishlist/types";
 import type { Currency, Item } from "@wishlist/types";
@@ -15,11 +15,29 @@ type FormData = {
 };
 
 type Props = {
-  item?: Item;
-  onAdd: (item: CreateItemDto) => void;
-  onUpdate: (item: Item) => void;
   onClose: () => void;
-};
+} & (
+  | {
+      mode: "add";
+      onAdd: (item: CreateItemDto) => void;
+      item?: never;
+      onUpdate?: never;
+      canEdit?: never;
+      onResetClaim?: never;
+      onArchive?: never;
+      onUnarchive?: never;
+    }
+  | {
+      mode: "edit";
+      onUpdate: (item: Item) => void;
+      item: Item;
+      canEdit: boolean;
+      onResetClaim: () => void;
+      onArchive: () => void;
+      onUnarchive: () => void;
+      onAdd?: never;
+    }
+);
 
 const defaultFormData: FormData = {
   name: "",
@@ -28,9 +46,19 @@ const defaultFormData: FormData = {
   link: "",
 };
 
-const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
-  const [formData, setFormData] = useState(
-    item
+const ItemModal = ({
+  mode,
+  item,
+  canEdit,
+  onAdd,
+  onUpdate,
+  onClose,
+  onResetClaim,
+  onArchive,
+  onUnarchive,
+}: Props) => {
+  const [formData, setFormData] = useState<FormData>(
+    mode === "edit"
       ? {
           name: item.name,
           price: item.price === 0 ? "" : String(item.price),
@@ -40,10 +68,11 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
       : defaultFormData,
   );
   const [error, setError] = useState<boolean>(false);
+  const [confirmingReset, setConfirmingReset] = useState<boolean>(false);
 
-  const isEditing = !!item;
-  const title = isEditing ? "Edit Item" : "New Item";
-  const buttonText = isEditing ? "Save Changes" : "Add Item";
+  const isEditing = mode === "edit";
+  const title = isEditing ? "Edit Wish" : "New Wish";
+  const buttonText = isEditing ? "Save Changes" : "Add Wish";
 
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
@@ -152,17 +181,81 @@ const AddItemModal = ({ item, onAdd, onUpdate, onClose }: Props) => {
           }
           onBlur={() => setError(false)}
         />
-        <Button
-          variant="flat"
-          color="primary"
-          type="submit"
-          data-testid="add-item-modal-submit-button"
-        >
-          {buttonText}
-        </Button>
+        {isEditing && canEdit && (
+          <>
+            {confirmingReset ? (
+              <div className={styles.claimReset}>
+                <p className={styles.message}>
+                  This will release the current claim. Are you sure?
+                </p>
+                <div className={styles.buttonGroup}>
+                  <Button
+                    variant="ghost"
+                    color="primary"
+                    type="button"
+                    onClick={() => {
+                      onResetClaim();
+                      setConfirmingReset(false);
+                    }}
+                  >
+                    Yes, release claim
+                  </Button>
+                  <Button
+                    variant="flat"
+                    color="secondary"
+                    type="button"
+                    onClick={() => setConfirmingReset(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.claimReset}>
+                <p className={styles.message}>
+                  If the wish was claimed, this will release it.
+                </p>
+                <div className={styles.buttonGroup}>
+                  <Button
+                    variant="ghost"
+                    color="primary"
+                    type="button"
+                    onClick={() => setConfirmingReset(true)}
+                  >
+                    Reset claim
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+        {(!isEditing || canEdit) && (
+          <div className={styles.footer}>
+            <div className={styles.buttonGroup}>
+              {isEditing && (
+                <Button
+                  variant="flat"
+                  color="secondary"
+                  type="button"
+                  onClick={item.archived ? onUnarchive : onArchive}
+                >
+                  {item.archived ? "Unarchive" : "Archive"}
+                </Button>
+              )}
+              <Button
+                variant="flat"
+                color="primary"
+                type="submit"
+                data-testid="add-item-modal-submit-button"
+              >
+                {buttonText}
+              </Button>
+            </div>
+          </div>
+        )}
       </form>
     </Modal>
   );
 };
 
-export { AddItemModal };
+export { ItemModal };

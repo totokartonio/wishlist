@@ -32,12 +32,14 @@ type FormData = {
   name: string;
   description: string;
   visibility: WishlistVisibility;
+  hideClaimsFromOwner: boolean;
 };
 
 const defaultFormData: FormData = {
   name: "",
   description: "",
   visibility: "private",
+  hideClaimsFromOwner: true,
 };
 
 const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
@@ -47,6 +49,7 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
           name: wishlist.name,
           description: wishlist.description ?? "",
           visibility: wishlist.visibility,
+          hideClaimsFromOwner: wishlist.hideClaimsFromOwner,
         }
       : defaultFormData,
   );
@@ -61,7 +64,6 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
 
     if (mode === "edit") {
       onUpdate({ ...wishlist, ...formData });
-      onClose();
       return;
     }
 
@@ -69,6 +71,7 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
       name: formData.name,
       description: formData.description || undefined,
       visibility: formData.visibility,
+      hideClaimsFromOwner: formData.hideClaimsFromOwner,
     });
 
     setFormData(defaultFormData);
@@ -89,7 +92,7 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
           </div>
         )}
         <Input
-          label="Name"
+          label="Name:"
           type="text"
           id="wishlist-name"
           value={formData.name}
@@ -100,7 +103,7 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
           required
         />
         <Input
-          label="Description"
+          label="Description:"
           type="text"
           id="wishlist-description"
           value={formData.description}
@@ -110,7 +113,7 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
           onBlur={() => setError(false)}
         />
         <Select
-          label="Visibility"
+          label="Who can see your wishlist?"
           id="wishlist-visibility"
           value={formData.visibility}
           onChange={(event) =>
@@ -125,6 +128,20 @@ const WishlistModal = ({ onClose, mode, wishlist, onAdd, onUpdate }: Props) => {
               {visibility.charAt(0).toUpperCase() + visibility.slice(1)}
             </option>
           ))}
+        </Select>
+        <Select
+          label="Surprise mode — hide claimed items from me:"
+          id="wishlist-surprise"
+          value={String(formData.hideClaimsFromOwner)}
+          onChange={(event) =>
+            setFormData({
+              ...formData,
+              hideClaimsFromOwner: event.target.value === "true",
+            })
+          }
+        >
+          <option value={"true"}>Yes, hide what wishes was claimed</option>
+          <option value={"false"}>No, I want to see claimed wishes</option>
         </Select>
         <Button variant="flat" color="primary" type="submit">
           {mode === "edit" ? "Save Changes" : "Add Wishlist"}

@@ -1,9 +1,10 @@
 import styles from "./Wishlist.module.css";
 import { useState } from "react";
-import AddItemModal from "./atoms/AddItemModal";
+import ItemModal from "./atoms/ItemModal";
 import ItemsTable from "./atoms/ItemsTable";
 import { useWishlist } from "../../hooks/wishlists/useWishlist";
 import { useItems } from "../../hooks/items/useItems";
+import { useSession } from "../../lib/auth-client";
 import Sidebar from "./atoms/Sidebar";
 import { useCollaborators } from "../../hooks/collaborators/useCollaborators";
 import { useCreateInvite } from "../../hooks/invites/useCreateInvite";
@@ -12,10 +13,11 @@ import { ApiError } from "../../lib/apiError";
 import WishlistModal from "../WishlistModal";
 import { useItemActions } from "../../hooks/items/useItemsActions";
 import { useWishlistActions } from "../../hooks/wishlists/useWishlistActions";
-import DeleteModal from "./atoms/DeleteModal";
 import type { ModalMode } from "@wishlist/types";
 import { Button } from "../ui/Button/Button";
+import ConfirmationModal from "../ui/ConfirmationModal";
 import { GearIcon } from "@phosphor-icons/react/dist/csr/Gear";
+import type { Wishlist } from "@wishlist/types";
 
 type Props = {
   wishlistId: string;
@@ -25,6 +27,8 @@ const WishlistPage = ({ wishlistId }: Props) => {
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
   const [inviteUrl, setInviteUrl] = useState<string | undefined>(undefined);
+  const [pendingWishlistUpdate, setPendingWishlistUpdate] =
+    useState<Wishlist | null>(null);
 
   const { data: items = [], isLoading, isError } = useItems(wishlistId);
 
@@ -38,6 +42,7 @@ const WishlistPage = ({ wishlistId }: Props) => {
   const enabled = !!wishlist;
   const { data: collaborators } = useCollaborators(wishlistId, enabled);
   const { data: user } = useGetUser(wishlist?.ownerId ?? "", enabled);
+  const { data: session } = useSession();
 
   const { mutate: createInvite } = useCreateInvite();
 
@@ -48,11 +53,19 @@ const WishlistPage = ({ wishlistId }: Props) => {
     handleDeleteItem,
     handleEditItem,
     handleDeleteItemWithConfirm,
-    handleChangeStatus,
+    handleClaimItem,
+    handleUnclaimItem,
+    handleResetClaim,
+    handleArchiveItem,
+    handleUnarchiveItem,
   } = useItemActions({ wishlistId, setModalMode });
 
-  const { handleUpdateWishlist, handleDeleteWishlist, handleEditWishlist } =
-    useWishlistActions({ wishlist, setModalMode });
+  const {
+    handleUpdateWishlist,
+    handleDeleteWishlist,
+    handleEditWishlist,
+    handleLeave,
+  } = useWishlistActions({ wishlist, setModalMode });
 
   const handleGenerateInvite = () => {
     createInvite(wishlistId, {
@@ -81,6 +94,22 @@ const WishlistPage = ({ wishlistId }: Props) => {
 
   if (isError) return <p>Something went wrong.</p>;
   if (!wishlist) return <p>Wishlist not found.</p>;
+  const showClaim = !isOwner || !wishlist.hideClaimsFromOwner;
+
+  const handleSaveWishlist = (updatedWishlist: Wishlist) => {
+    const isGoingPrivate =
+      updatedWishlist.visibility === "private" &&
+      wishlist?.visibility !== "private";
+    const hasCollaborators = (collaborators?.length ?? 0) > 0;
+
+    if (isGoingPrivate && hasCollaborators) {
+      setPendingWishlistUpdate(updatedWishlist);
+      setModalMode("confirmPrivate");
+      return;
+    }
+
+    handleUpdateWishlist(updatedWishlist);
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -108,8 +137,13 @@ const WishlistPage = ({ wishlistId }: Props) => {
         items={items}
         onEdit={handleEditItem}
         onDelete={handleDeleteItemWithConfirm}
-        onChangeStatus={handleChangeStatus}
+        onClaim={handleClaimItem}
+        onUnclaim={handleUnclaimItem}
+        onArchive={handleArchiveItem}
+        onUnarchive={handleUnarchiveItem}
+        userId={session?.user.id ?? null}
         canEdit={canEdit}
+        showClaim={showClaim}
       />
       {showSidebar && (
         <Sidebar
@@ -125,15 +159,29 @@ const WishlistPage = ({ wishlistId }: Props) => {
           onGenerate={handleGenerateInvite}
           onClose={() => setShowSidebar(false)}
           onEdit={handleEditWishlist}
-          onDelete={() => setModalMode("deleteWishlist")}
+          onDelete={() => setModalMode("confirmDeleteWishlist")}
+          onLeave={() => setModalMode("confirmLeave")}
         />
       )}
       {modalMode === "addItem" && (
-        <AddItemModal
-          item={editingItem || undefined}
+        <ItemModal
+          mode="add"
           onAdd={handleAdd}
+          onClose={() => setModalMode(null)}
+        />
+      )}
+      {modalMode === "editItem" && editingItem && (
+        <ItemModal
+          mode="edit"
+          item={editingItem}
           onUpdate={handleUpdateItem}
           onClose={() => setModalMode(null)}
+          onResetClaim={() => editingItemId && handleResetClaim(editingItemId)}
+          onArchive={() => editingItemId && handleArchiveItem(editingItemId)}
+          onUnarchive={() =>
+            editingItemId && handleUnarchiveItem(editingItemId)
+          }
+          canEdit={canEdit}
         />
       )}
       {modalMode === "editWishlist" && (
@@ -141,24 +189,56 @@ const WishlistPage = ({ wishlistId }: Props) => {
           wishlist={wishlist}
           mode="edit"
           onClose={() => setModalMode(null)}
-          onUpdate={handleUpdateWishlist}
+          onUpdate={handleSaveWishlist}
         />
       )}
-      {(modalMode === "deleteItem" || modalMode === "deleteWishlist") && (
-        <DeleteModal
-          mode={modalMode}
+      {modalMode === "confirmDeleteItem" && (
+        <ConfirmationModal
+          title={"Delete Wish?"}
+          message={"Are you sure you want to delete this wish?"}
+          onConfirm={() => {
+            if (editingItemId) handleDeleteItem(editingItemId);
+            setModalMode(null);
+          }}
           onClose={() => setModalMode(null)}
-          onDelete={
-            modalMode === "deleteItem"
-              ? () => {
-                  if (editingItemId) handleDeleteItem(editingItemId);
-                  setModalMode(null);
-                }
-              : () => {
-                  handleDeleteWishlist();
-                  setModalMode(null);
-                }
-          }
+        />
+      )}
+      {modalMode === "confirmDeleteWishlist" && (
+        <ConfirmationModal
+          title={"Delete Wishlist?"}
+          message={"Are you sure you want to delete this wishlist?"}
+          onConfirm={() => {
+            handleDeleteWishlist();
+            setModalMode(null);
+          }}
+          onClose={() => setModalMode(null)}
+        />
+      )}
+      {modalMode === "confirmPrivate" && (
+        <ConfirmationModal
+          title="Make wishlist private?"
+          message={`This will remove all collaborators and invalidate all invite links.`}
+          onConfirm={() => {
+            if (pendingWishlistUpdate)
+              handleUpdateWishlist(pendingWishlistUpdate);
+            setPendingWishlistUpdate(null);
+            setModalMode(null);
+          }}
+          onClose={() => {
+            setPendingWishlistUpdate(null);
+            setModalMode(null);
+          }}
+        />
+      )}
+      {modalMode === "confirmLeave" && (
+        <ConfirmationModal
+          title="Leave wishlist?"
+          message="You will lose access to this wishlist. Any items you claimed will be released."
+          onConfirm={() => {
+            if (session?.user.id) handleLeave(session.user.id);
+            setModalMode(null);
+          }}
+          onClose={() => setModalMode(null)}
         />
       )}
     </div>

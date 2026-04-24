@@ -21,6 +21,7 @@ type Props = {
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onLeave: () => void;
   wishlistId: string;
 };
 
@@ -38,6 +39,7 @@ const Sidebar = ({
   onClose,
   onEdit,
   onDelete,
+  onLeave,
 }: Props) => {
   return (
     <Drawer onClose={onClose}>
@@ -56,8 +58,9 @@ const Sidebar = ({
           isOwner={isOwner}
           collaborators={collaborators}
           wishlistId={wishlistId}
+          onLeave={onLeave}
         />
-        {isOwner && visibility === "invite" && (
+        {isOwner && (visibility === "invite" || visibility === "public") && (
           <InviteLink url={url} onGenerate={onGenerate} />
         )}
       </aside>

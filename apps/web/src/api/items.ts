@@ -65,3 +65,59 @@ export const deleteItem = async (
   );
   return handleResponse<void>(response);
 };
+
+export const claimItem = async (
+  wishlistId: string,
+  id: string,
+): Promise<Item> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}/claim`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+  return handleResponse<Item>(response);
+};
+
+export const unclaimItem = async (
+  wishlistId: string,
+  id: string,
+): Promise<Item> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}/unclaim`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+  return handleResponse<Item>(response);
+};
+
+export const archiveItem = async (
+  wishlistId: string,
+  id: string,
+): Promise<Item> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}/archive`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+  return handleResponse<Item>(response);
+};
+
+export const unarchiveItem = async (
+  wishlistId: string,
+  id: string,
+): Promise<Item> => {
+  const response = await fetch(
+    `${BASE_URL}/api/wishlists/${wishlistId}/items/${id}/unarchive`,
+    {
+      credentials: "include",
+      method: "POST",
+    },
+  );
+  return handleResponse<Item>(response);
+};

@@ -1,0 +1,34 @@
+.formError {
+  color: var(--color-error);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.claimReset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.message {
+  font-size: var(--font-size-sm);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.footer {
+  border-top: 1px solid var(--color-neutral-200);
+  padding-top: var(--spacing-lg);
+
+  &.buttonGroup {
+    justify-content: space-between;
+  }
+}

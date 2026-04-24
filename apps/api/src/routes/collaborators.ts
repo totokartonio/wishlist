@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { prisma } from "@wishlist/database";
 import type { AuthVariables } from "../middleware/auth";
 import { getWishlistWithRole } from "../lib/wishlistAccess";
+import { deleteAnonymousUser } from "../lib/deleteAnonymousUser";
 
 const collaborators = new Hono<{ Variables: AuthVariables }>();
 
@@ -9,7 +10,6 @@ const collaborators = new Hono<{ Variables: AuthVariables }>();
  * GET /api/wishlists/:wishlistId/collaborators
  * Get all collaborators for the current wishlist
  */
-
 collaborators.get("/", async (c) => {
   const session = c.get("session");
   const userId = session.user.id;
@@ -30,45 +30,8 @@ collaborators.get("/", async (c) => {
 });
 
 /**
- * POST /api/wishlists/:wishlistId/collaborators
- * invite new collaborator
- */
-collaborators.post("/", async (c) => {
-  const session = c.get("session");
-  const userId = session.user.id;
-  const wishlistId = c.req.param("wishlistId");
-  const body = await c.req.json<{ email: string; role?: string }>();
-
-  if (!wishlistId) return c.json({ error: "Wishlist ID is required" }, 400);
-  if (!body.email) return c.json({ error: "Email is required" }, 400);
-
-  const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
-  if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
-  if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
-
-  const targetUser = await prisma.user.findUnique({
-    where: { email: body.email },
-  });
-
-  if (!targetUser) return c.json({ error: "User not found" }, 404);
-  if (targetUser.id === userId) {
-    return c.json({ error: "Cannot add yourself as collaborator" }, 400);
-  }
-
-  const collaborator = await prisma.collaborator.create({
-    data: {
-      wishlistId,
-      userId: targetUser.id,
-      role: body.role || "viewer",
-    },
-  });
-
-  return c.json(collaborator, 201);
-});
-
-/**
  * PATCH /api/wishlists/:wishlistId/collaborators/:collaboratorUserId
- * Update a collaborator
+ * Update a collaborator's role (owner only)
  */
 collaborators.patch("/:collaboratorUserId", async (c) => {
   const session = c.get("session");
@@ -92,8 +55,9 @@ collaborators.patch("/:collaboratorUserId", async (c) => {
 });
 
 /**
- * DELETE /api/wishlists/:wishlistId/collaborator/:userId
- * Delete a collaborator
+ * DELETE /api/wishlists/:wishlistId/collaborators/:collaboratorUserId
+ * Remove a collaborator. Owner can remove anyone; collaborators can remove themselves.
+ * Releases the target's claims on this wishlist. Cleans up anonymous users.
  */
 collaborators.delete("/:collaboratorUserId", async (c) => {
   const session = c.get("session");
@@ -105,13 +69,53 @@ collaborators.delete("/:collaboratorUserId", async (c) => {
 
   const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
   if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
-  if (role !== "owner") return c.json({ error: "Forbidden" }, 403);
+  if (!role) return c.json({ error: "Forbidden" }, 403);
 
-  await prisma.collaborator.delete({
-    where: { wishlistId_userId: { wishlistId, userId: collaboratorUserId } },
-  });
+  const isSelfLeave = collaboratorUserId === userId;
+  const isOwnerRemoving = role === "owner";
 
-  return c.json({ success: true });
+  if (!isSelfLeave && !isOwnerRemoving) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
+  // Owner cannot leave their own wishlist — delete the wishlist instead
+  if (isSelfLeave && role === "owner") {
+    return c.json({ error: "Owners cannot leave their own wishlist" }, 400);
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.item.updateMany({
+        where: {
+          wishlistId,
+          claimedByUserId: collaboratorUserId,
+        },
+        data: {
+          status: "want",
+          claimedByUserId: null,
+        },
+      });
+
+      await tx.collaborator.delete({
+        where: {
+          wishlistId_userId: { wishlistId, userId: collaboratorUserId },
+        },
+      });
+
+      await deleteAnonymousUser(collaboratorUserId, tx);
+    });
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error removing collaborator:", error);
+    if (
+      error instanceof Error &&
+      error.message.includes("Record to delete does not exist")
+    ) {
+      return c.json({ error: "Collaborator not found" }, 404);
+    }
+    return c.json({ error: "Failed to remove collaborator" }, 500);
+  }
 });
 
 export default collaborators;

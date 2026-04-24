@@ -42,13 +42,9 @@ const Dashboard = () => {
         {ownedWishlists.length > 0 ? (
           <WishlistsGrid color="primary" wishlists={ownedWishlists} />
         ) : (
-          <Button
-            variant="raised"
-            color="primary"
-            onClick={() => setShowModal(true)}
-          >
-            Create your first wishlist
-          </Button>
+          <p className={styles.emptyState}>
+            You don't have any wishlists yet. Create one to get started.
+          </p>
         )}
       </section>
       {sharedWishlists.length > 0 && (

@@ -5,14 +5,21 @@ import { RoleSelect } from "./RoleSelect";
 import styles from "./Collaborators.module.css";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import Badge from "../../../../../ui/Badge";
+import { Button } from "../../../../../ui/Button/Button";
 
 type Props = {
   isOwner: boolean;
   collaborators: Collaborator[] | undefined;
   wishlistId: string;
+  onLeave: () => void;
 };
 
-const Collaborators = ({ isOwner, collaborators, wishlistId }: Props) => {
+const Collaborators = ({
+  isOwner,
+  collaborators,
+  wishlistId,
+  onLeave,
+}: Props) => {
   const { mutate: removeCollaborator } = useRemoveCollaborator();
   const { mutate: updateCollaborator } = useUpdateCollaborator();
 
@@ -58,6 +65,16 @@ const Collaborators = ({ isOwner, collaborators, wishlistId }: Props) => {
             </li>
           ))}
         </ul>
+      )}
+      {!isOwner && (
+        <Button
+          variant="flat"
+          color="secondary"
+          type="button"
+          onClick={onLeave}
+        >
+          Leave wishlist
+        </Button>
       )}
     </section>
   );

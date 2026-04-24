@@ -32,8 +32,12 @@ const baseProps = {
   created: "2024-01-01",
   collaborators: mockCollaborators,
   wishlistId: "wishlist-1",
+  canEdit: true,
   onGenerate: vi.fn(),
   onClose: vi.fn(),
+  onEdit: vi.fn(),
+  onDelete: vi.fn(),
+  onLeave: vi.fn(),
 };
 
 describe("Sidebar", () => {
@@ -62,8 +66,8 @@ describe("Sidebar", () => {
     expect(screen.queryByTestId("invite-link")).not.toBeInTheDocument();
   });
 
-  test("hides invite link for owner with public visibility", () => {
+  test("shows invite link for owner with public visibility", () => {
     render(<Sidebar {...baseProps} isOwner={true} visibility="public" />);
-    expect(screen.queryByTestId("invite-link")).not.toBeInTheDocument();
+    expect(screen.getByTestId("invite-link")).toBeInTheDocument();
   });
 });

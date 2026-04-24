@@ -16,8 +16,7 @@
     "db:generate": "bun --filter @wishlist/database db:generate",
     "db:push": "bun --filter @wishlist/database db:push",
     "db:migrate": "bun --filter @wishlist/database db:migrate",
-    "db:studio": "bun --filter @wishlist/database db:studio",
-    "db:seed": "bun --filter @wishlist/database db:seed"
+    "db:studio": "bun --filter @wishlist/database db:studio"
   },
   "devDependencies": {
     "@tanstack/eslint-plugin-query": "^5.97.0",

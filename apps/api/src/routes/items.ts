@@ -1,9 +1,15 @@
 import { Hono } from "hono";
 import { prisma } from "@wishlist/database";
-import type { CreateItemDto, UpdateItemDto } from "@wishlist/types";
+import {
+  ITEM_STATUSES,
+  type CreateItemDto,
+  type UpdateItemDto,
+} from "@wishlist/types";
 import type { AuthVariables } from "../middleware/auth";
 import { getWishlistWithRole } from "../lib/wishlistAccess";
 import { auth } from "../auth";
+import { deleteAnonymousUser } from "../lib/deleteAnonymousUser";
+import { filterItemsForRole } from "../lib/itemFiltering";
 
 const items = new Hono<{ Variables: AuthVariables }>();
 
@@ -30,7 +36,14 @@ items.get("/", async (c) => {
       orderBy: { createdAt: "desc" },
     });
 
-    return c.json(wishlistItems);
+    const filtered = filterItemsForRole(
+      wishlistItems,
+      role,
+      wishlist.hideClaimsFromOwner,
+      userId,
+    );
+
+    return c.json(filtered);
   } catch (error) {
     console.error("Error fetching items:", error);
     return c.json({ error: "Failed to fetch items" }, 500);
@@ -56,15 +69,22 @@ items.get("/:id", async (c) => {
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (!role) return c.json({ error: "Forbidden" }, 403);
 
-    const item = await prisma.item.findUnique({
-      where: { id },
-    });
-
-    if (!item) {
+    const item = await prisma.item.findUnique({ where: { id } });
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    if (item.wishlistId !== wishlistId) {
       return c.json({ error: "Item not found" }, 404);
     }
 
-    return c.json(item);
+    const [filtered] = filterItemsForRole(
+      [item],
+      role,
+      wishlist.hideClaimsFromOwner,
+      userId,
+    );
+
+    if (!filtered) return c.json({ error: "Item not found" }, 404);
+
+    return c.json(filtered);
   } catch (error) {
     console.error("Error fetching item:", error);
     return c.json({ error: "Failed to fetch item" }, 500);
@@ -103,6 +123,15 @@ items.post("/", async (c) => {
 
     if (body.price !== undefined && body.price < 0) {
       return c.json({ error: "Price must be a positive number" }, 400);
+    }
+
+    if (body.status !== undefined && !ITEM_STATUSES.includes(body.status)) {
+      return c.json({ error: "Invalid status" }, 400);
+    }
+
+    // New items start in "want" state — force-creating as "claimed" makes no sense
+    if (body.status === "claimed") {
+      return c.json({ error: "New items cannot be created as claimed" }, 400);
     }
 
     const item = await prisma.item.create({
@@ -155,12 +184,54 @@ items.patch("/:id", async (c) => {
       return c.json({ error: "Price must be a positive number" }, 400);
     }
 
-    const item = await prisma.item.update({
-      where: { id },
-      data: body,
+    if (body.status !== undefined && !ITEM_STATUSES.includes(body.status)) {
+      return c.json({ error: "Invalid status" }, 400);
+    }
+
+    const existing = await prisma.item.findUnique({ where: { id } });
+    if (!existing) return c.json({ error: "Item not found" }, 404);
+    if (existing.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+
+    // Reject force-claim via PATCH — claim endpoint is the only path to claim
+    if (body.status === "claimed" && existing.status === "want") {
+      return c.json({ error: "Use the claim endpoint to claim items" }, 400);
+    }
+
+    const isForceUnclaim =
+      body.status === "want" &&
+      existing.status === "claimed" &&
+      existing.claimedByUserId !== null;
+
+    const formerClaimerId = isForceUnclaim ? existing.claimedByUserId : null;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedItem = await tx.item.update({
+        where: { id },
+        data: {
+          ...body,
+          ...(isForceUnclaim ? { claimedByUserId: null } : {}),
+        },
+      });
+
+      if (formerClaimerId) {
+        await deleteAnonymousUser(formerClaimerId, tx);
+      }
+
+      return updatedItem;
     });
 
-    return c.json(item);
+    const [filtered] = filterItemsForRole(
+      [updated],
+      role,
+      wishlist.hideClaimsFromOwner,
+      userId,
+    );
+
+    if (!filtered) return c.json({ error: "Item not found" }, 404);
+
+    return c.json(filtered);
   } catch (error) {
     console.error("Error updating item:", error);
     if (
@@ -193,8 +264,20 @@ items.delete("/:id", async (c) => {
     if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
     if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
 
-    await prisma.item.delete({
-      where: { id },
+    const existing = await prisma.item.findUnique({ where: { id } });
+    if (!existing) return c.json({ error: "Item not found" }, 404);
+    if (existing.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+
+    const formerClaimerId = existing.claimedByUserId;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.item.delete({ where: { id } });
+
+      if (formerClaimerId) {
+        await deleteAnonymousUser(formerClaimerId, tx);
+      }
     });
 
     return c.json({ success: true });
@@ -207,6 +290,202 @@ items.delete("/:id", async (c) => {
       return c.json({ error: "Item not found" }, 404);
     }
     return c.json({ error: "Failed to delete item" }, 500);
+  }
+});
+
+/**
+ * POST /api/wishlists/:wishlistId/items/:id/claim
+ * Claim an item
+ */
+items.post("/:id/claim", async (c) => {
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+    const userId = session.user.id;
+    const wishlistId = c.req.param("wishlistId");
+    const id = c.req.param("id");
+
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
+    }
+
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role) return c.json({ error: "Forbidden" }, 403);
+
+    const item = await prisma.item.findUnique({ where: { id } });
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    if (item.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+    if (item.archived) {
+      return c.json({ error: "Item is archived" }, 409);
+    }
+    if (item.claimedByUserId) {
+      return c.json({ error: "Item is already claimed" }, 409);
+    }
+
+    const updated = await prisma.item.update({
+      where: { id },
+      data: {
+        status: "claimed",
+        claimedByUserId: userId,
+      },
+    });
+
+    return c.json(updated);
+  } catch (error) {
+    console.error("Error claiming item:", error);
+    return c.json({ error: "Failed to claim item" }, 500);
+  }
+});
+
+/**
+ * POST /api/wishlists/:wishlistId/items/:id/unclaim
+ * Unclaim an item (only the current claimer can do this)
+ */
+items.post("/:id/unclaim", async (c) => {
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+    const userId = session.user.id;
+    const wishlistId = c.req.param("wishlistId");
+    const id = c.req.param("id");
+
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
+    }
+
+    const item = await prisma.item.findUnique({ where: { id } });
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    if (item.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+    if (!item.claimedByUserId) {
+      return c.json({ error: "Item is not claimed" }, 409);
+    }
+    if (item.claimedByUserId !== userId) {
+      return c.json({ error: "Forbidden" }, 403);
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedItem = await tx.item.update({
+        where: { id },
+        data: {
+          status: "want",
+          claimedByUserId: null,
+        },
+      });
+
+      await deleteAnonymousUser(userId, tx);
+
+      return updatedItem;
+    });
+
+    return c.json(updated);
+  } catch (error) {
+    console.error("Error unclaiming item:", error);
+    return c.json({ error: "Failed to unclaim item" }, 500);
+  }
+});
+
+/**
+ * POST /api/wishlists/:wishlistId/items/:id/archive
+ * Archive an item (owner/editor only)
+ */
+items.post("/:id/archive", async (c) => {
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+    const userId = session.user.id;
+    const wishlistId = c.req.param("wishlistId");
+    const id = c.req.param("id");
+
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
+    }
+
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
+
+    const item = await prisma.item.findUnique({ where: { id } });
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    if (item.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+    if (item.archived) {
+      return c.json({ error: "Item is already archived" }, 409);
+    }
+
+    const updated = await prisma.item.update({
+      where: { id },
+      data: { archived: true },
+    });
+
+    const [filtered] = filterItemsForRole(
+      [updated],
+      role,
+      wishlist.hideClaimsFromOwner,
+      userId,
+    );
+
+    if (!filtered) return c.json({ error: "Item not found" }, 404);
+
+    return c.json(filtered);
+  } catch (error) {
+    console.error("Error archiving item:", error);
+    return c.json({ error: "Failed to archive item" }, 500);
+  }
+});
+
+/**
+ * POST /api/wishlists/:wishlistId/items/:id/unarchive
+ * Unarchive an item (owner/editor only)
+ */
+items.post("/:id/unarchive", async (c) => {
+  try {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: "Unauthorized" }, 401);
+    const userId = session.user.id;
+    const wishlistId = c.req.param("wishlistId");
+    const id = c.req.param("id");
+
+    if (!wishlistId) {
+      return c.json({ error: "Wishlist ID is required" }, 400);
+    }
+
+    const { wishlist, role } = await getWishlistWithRole(wishlistId, userId);
+    if (!wishlist) return c.json({ error: "Wishlist not found" }, 404);
+    if (!role || role === "viewer") return c.json({ error: "Forbidden" }, 403);
+
+    const item = await prisma.item.findUnique({ where: { id } });
+    if (!item) return c.json({ error: "Item not found" }, 404);
+    if (item.wishlistId !== wishlistId) {
+      return c.json({ error: "Item not found" }, 404);
+    }
+    if (!item.archived) {
+      return c.json({ error: "Item is not archived" }, 409);
+    }
+
+    const updated = await prisma.item.update({
+      where: { id },
+      data: { archived: false },
+    });
+
+    const [filtered] = filterItemsForRole(
+      [updated],
+      role,
+      wishlist.hideClaimsFromOwner,
+      userId,
+    );
+
+    if (!filtered) return c.json({ error: "Item not found" }, 404);
+
+    return c.json(filtered);
+  } catch (error) {
+    console.error("Error unarchiving item:", error);
+    return c.json({ error: "Failed to unarchive item" }, 500);
   }
 });
 
