@@ -42,7 +42,7 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+export function App() {
   const { data: session } = authClient.useSession();
   return (
     <RouterProvider router={router} context={{ session: session ?? null }} />

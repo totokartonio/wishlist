@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CreateItemDto, Item } from "@wishlist/types";
+import type { CreateItemDto, Item, UpdateItemDto } from "@wishlist/types";
 import { useCreateItem } from "./useCreateItem";
 import { useUpdateItem } from "./useUpdateItem";
 import { useDeleteItem } from "./useDeleteItem";
@@ -36,7 +36,16 @@ export const useItemActions = ({ wishlistId, setModalMode }: Props) => {
 
   const handleUpdateItem = (updatedItem: Item) => {
     if (!editingItemId) return;
-    const { id, archived, claimedByUserId, ...dto } = updatedItem;
+
+    const dto: UpdateItemDto = {
+      image: updatedItem.image,
+      name: updatedItem.name,
+      price: updatedItem.price,
+      currency: updatedItem.currency,
+      status: updatedItem.status,
+      link: updatedItem.link,
+    };
+
     updateItem(
       { wishlistId, id: editingItemId, dto },
       {
