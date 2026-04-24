@@ -23,6 +23,8 @@ model User {
   accounts      Account[]
   ownedWishlists Wishlist[]     @relation("OwnedWishlists")
   collaborations Collaborator[] @relation("CollaboratorOnWishlists")
+  isAnonymous Boolean?
+  claimedItems Item[]
 }
 
 model Session {
@@ -72,6 +74,7 @@ model Wishlist {
   ownerId      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  hideClaimsFromOwner Boolean @default(true)
 
   // relations
   owner         User           @relation("OwnedWishlists", fields: [ownerId], references: [id])
@@ -91,6 +94,9 @@ model Item {
   wishlistId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
+  claimedBy User?    @relation(fields: [claimedByUserId], references: [id], onDelete: Restrict)
+  claimedByUserId   String?
 
   // relations
   wishlist Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)

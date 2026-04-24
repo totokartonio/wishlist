@@ -1,30 +1,34 @@
-import type { ChangeEvent } from "react";
-import { ITEM_STATUSES, type Item, type ItemStatus } from "@wishlist/types";
+import { type Item } from "@wishlist/types";
 import styles from "./ItemsTable.module.css";
 import { CURRENCY_SYMBOLS } from "../../../../data";
-import { PencilIcon } from "@phosphor-icons/react/dist/csr/Pencil";
-import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
-import Select from "../../../ui/Select";
+import { ClaimButton } from "./atoms/ClaimButton";
+import { Actions } from "./atoms/Actions";
 
 type Props = {
   items: Item[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onChangeStatus: (id: string, status: ItemStatus) => void;
+  onClaim: (id: string) => void;
+  onUnclaim: (id: string) => void;
+  onArchive: (id: string) => void;
+  onUnarchive: (id: string) => void;
+  userId: string | null;
   canEdit: boolean;
+  showClaim: boolean;
 };
 
 const ItemsTable = ({
   items,
   onEdit,
   onDelete,
-  onChangeStatus,
+  onClaim,
+  onUnclaim,
+  onArchive,
+  onUnarchive,
+  userId,
   canEdit,
+  showClaim,
 }: Props) => {
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>, id: string) => {
-    const newStatus = event.target.value as ItemStatus;
-    onChangeStatus(id, newStatus);
-  };
   return (
     <div className={styles.wrapper}>
       <table className={styles.table}>
@@ -33,14 +37,18 @@ const ItemsTable = ({
             <th aria-label="Preview" />
             <th className={styles.nameCell}>Item Name</th>
             <th>Price</th>
-            <th>Status</th>
+            {showClaim && <th>Status</th>}
             <th>Link</th>
             {canEdit && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
-            <tr key={item.id} data-testid="items-table-body-row">
+            <tr
+              key={item.id}
+              data-testid="items-table-body-row"
+              className={item.archived ? styles.archived : ""}
+            >
               <td>
                 <div className={styles.placeholder} />
               </td>
@@ -52,21 +60,16 @@ const ItemsTable = ({
                     ? CURRENCY_SYMBOLS[item.currency] + item.price
                     : item.price}
               </td>
-              <td>
-                <Select
-                  id={`select-item-status-${item.id}`}
-                  value={item.status}
-                  data-testid="items-table-status"
-                  onChange={(event) => handleChange(event, item.id)}
-                  className={styles.select}
-                >
-                  {ITEM_STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </option>
-                  ))}
-                </Select>
-              </td>
+              {showClaim && (
+                <td>
+                  <ClaimButton
+                    item={item}
+                    userId={userId}
+                    onClaim={onClaim}
+                    onUnclaim={onUnclaim}
+                  />
+                </td>
+              )}
               <td>
                 {item.link ? (
                   <a
@@ -83,26 +86,13 @@ const ItemsTable = ({
               </td>
               {canEdit && (
                 <td>
-                  <div className={styles.buttonGroup}>
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      aria-label="Edit"
-                      onClick={() => onEdit(item.id)}
-                      data-testid="items-table-edit-button"
-                    >
-                      <PencilIcon size={22} className={styles.editIcon} />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      aria-label="Delete"
-                      onClick={() => onDelete(item.id)}
-                      data-testid="items-table-delete-button"
-                    >
-                      <TrashIcon size={22} className={styles.deleteIcon} />
-                    </button>
-                  </div>
+                  <Actions
+                    item={item}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onArchive={onArchive}
+                    onUnarchive={onUnarchive}
+                  />
                 </td>
               )}
             </tr>

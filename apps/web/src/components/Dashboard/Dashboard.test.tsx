@@ -25,6 +25,7 @@ const mockWishlist = {
   createdAt: "2024-01-01",
   updatedAt: "2024-01-01",
   role: "owner" as const,
+  hideClaimsFromOwner: true,
 };
 
 beforeEach(() => {
@@ -69,8 +70,8 @@ describe("Dashboard", () => {
     await screen.findByText("Dashboard");
 
     await user.click(screen.getByRole("button", { name: "Create wishlist" }));
-    await user.type(screen.getByLabelText("Name"), "New Wishlist");
-    await user.type(screen.getByLabelText("Description"), "A description");
+    await user.type(screen.getByLabelText("Name:"), "New Wishlist");
+    await user.type(screen.getByLabelText("Description:"), "A description");
     await user.click(screen.getByRole("button", { name: "Add Wishlist" }));
 
     expect(await screen.findByText("New Wishlist")).toBeInTheDocument();

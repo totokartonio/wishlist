@@ -2,6 +2,7 @@ import type { Wishlist, ModalMode } from "@wishlist/types";
 import { useUpdateWishlist } from "./useUpdateWishlist";
 import { useDeleteWishlist } from "./useDeleteWishlist";
 import { useNavigate } from "@tanstack/react-router";
+import { useRemoveCollaborator } from "../collaborators/useRemoveCollaborator";
 
 type Props = {
   wishlist: Wishlist | undefined;
@@ -12,6 +13,7 @@ export const useWishlistActions = ({ wishlist, setModalMode }: Props) => {
   const navigate = useNavigate();
   const { mutate: updateWishlist } = useUpdateWishlist();
   const { mutate: deleteWishlist } = useDeleteWishlist();
+  const { mutate: removeCollaborator } = useRemoveCollaborator();
 
   const handleUpdateWishlist = (updatedWishlist: Wishlist) => {
     if (!wishlist) return;
@@ -22,6 +24,7 @@ export const useWishlistActions = ({ wishlist, setModalMode }: Props) => {
           name: updatedWishlist.name,
           description: updatedWishlist.description ?? undefined,
           visibility: updatedWishlist.visibility,
+          hideClaimsFromOwner: updatedWishlist.hideClaimsFromOwner,
         },
       },
       { onSuccess: () => setModalMode(null) },
@@ -39,9 +42,18 @@ export const useWishlistActions = ({ wishlist, setModalMode }: Props) => {
     setModalMode("editWishlist");
   };
 
+  const handleLeave = (userId: string) => {
+    if (!wishlist) return;
+    removeCollaborator(
+      { wishlistId: wishlist.id, id: userId },
+      { onSuccess: () => navigate({ to: "/dashboard" }) },
+    );
+  };
+
   return {
     handleUpdateWishlist,
     handleDeleteWishlist,
     handleEditWishlist,
+    handleLeave,
   };
 };

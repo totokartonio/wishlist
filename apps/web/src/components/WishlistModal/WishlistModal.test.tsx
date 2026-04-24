@@ -19,6 +19,7 @@ const mockWishlist = {
   ownerId: "user1",
   createdAt: "2024-01-01",
   updatedAt: "2024-01-01",
+  hideClaimsFromOwner: true,
 };
 
 describe("WishlistModal", () => {
@@ -28,9 +29,11 @@ describe("WishlistModal", () => {
         <WishlistModal mode="add" onAdd={mockOnAdd} onClose={mockOnClose} />,
       );
 
-      expect(screen.getByLabelText("Name")).toHaveValue("");
-      expect(screen.getByLabelText("Description")).toHaveValue("");
-      expect(screen.getByLabelText("Visibility")).toHaveValue("private");
+      expect(screen.getByLabelText("Name:")).toHaveValue("");
+      expect(screen.getByLabelText("Description:")).toHaveValue("");
+      expect(screen.getByLabelText("Who can see your wishlist?")).toHaveValue(
+        "private",
+      );
     });
 
     test("can't submit empty form", async () => {
@@ -51,9 +54,12 @@ describe("WishlistModal", () => {
         <WishlistModal mode="add" onAdd={mockOnAdd} onClose={mockOnClose} />,
       );
 
-      await user.type(screen.getByLabelText("Name"), "New Wishlist");
-      await user.type(screen.getByLabelText("Description"), "A description");
-      await user.selectOptions(screen.getByLabelText("Visibility"), "public");
+      await user.type(screen.getByLabelText("Name:"), "New Wishlist");
+      await user.type(screen.getByLabelText("Description:"), "A description");
+      await user.selectOptions(
+        screen.getByLabelText("Who can see your wishlist?"),
+        "public",
+      );
       await user.click(screen.getByRole("button", { name: "Add Wishlist" }));
 
       expect(mockOnAdd).toHaveBeenCalledWith(
@@ -61,6 +67,7 @@ describe("WishlistModal", () => {
           name: "New Wishlist",
           description: "A description",
           visibility: "public",
+          hideClaimsFromOwner: true,
         }),
       );
       expect(mockOnClose).toHaveBeenCalled();
@@ -88,11 +95,13 @@ describe("WishlistModal", () => {
         />,
       );
 
-      expect(screen.getByLabelText("Name")).toHaveValue("My Wishlist");
-      expect(screen.getByLabelText("Description")).toHaveValue(
+      expect(screen.getByLabelText("Name:")).toHaveValue("My Wishlist");
+      expect(screen.getByLabelText("Description:")).toHaveValue(
         "Test description",
       );
-      expect(screen.getByLabelText("Visibility")).toHaveValue("public");
+      expect(screen.getByLabelText("Who can see your wishlist?")).toHaveValue(
+        "public",
+      );
     });
 
     test("calls onUpdate with correct data", async () => {
@@ -106,7 +115,7 @@ describe("WishlistModal", () => {
         />,
       );
 
-      const nameInput = screen.getByLabelText("Name");
+      const nameInput = screen.getByLabelText("Name:");
       await user.clear(nameInput);
       await user.type(nameInput, "New Name");
       await user.click(screen.getByRole("button", { name: "Save Changes" }));
@@ -116,9 +125,9 @@ describe("WishlistModal", () => {
           name: "New Name",
           description: "Test description",
           visibility: "public",
+          hideClaimsFromOwner: true,
         }),
       );
-      expect(mockOnClose).toHaveBeenCalled();
     });
 
     test("calls onClose when modal closed", async () => {

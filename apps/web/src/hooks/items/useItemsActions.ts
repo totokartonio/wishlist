@@ -1,15 +1,14 @@
 import { useState } from "react";
-import type { CreateItemDto, Item, ItemStatus } from "@wishlist/types";
+import type { CreateItemDto, Item, UpdateItemDto } from "@wishlist/types";
 import { useCreateItem } from "./useCreateItem";
 import { useUpdateItem } from "./useUpdateItem";
 import { useDeleteItem } from "./useDeleteItem";
-
-type ModalMode =
-  | "addItem"
-  | "editWishlist"
-  | "deleteItem"
-  | "deleteWishlist"
-  | null;
+import { useClaimItem } from "./useClaimItem";
+import { useUnclaimItem } from "./useUnclaimItem";
+import { useArchiveItem } from "./useArchiveItem";
+import { useUnarchiveItem } from "./useUnarchiveItem";
+import { useSession, signIn } from "../../lib/auth-client";
+import { type ModalMode } from "@wishlist/types";
 
 type Props = {
   wishlistId: string;
@@ -19,9 +18,14 @@ type Props = {
 export const useItemActions = ({ wishlistId, setModalMode }: Props) => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
+  const { data: session } = useSession();
   const { mutate: createItem } = useCreateItem();
   const { mutate: updateItem } = useUpdateItem();
   const { mutate: deleteItem } = useDeleteItem();
+  const { mutate: claimItem } = useClaimItem();
+  const { mutate: unclaimItem } = useUnclaimItem();
+  const { mutate: archiveItem } = useArchiveItem();
+  const { mutate: unarchiveItem } = useUnarchiveItem();
 
   const handleAdd = (newItem: CreateItemDto) => {
     createItem(
@@ -32,8 +36,18 @@ export const useItemActions = ({ wishlistId, setModalMode }: Props) => {
 
   const handleUpdateItem = (updatedItem: Item) => {
     if (!editingItemId) return;
+
+    const dto: UpdateItemDto = {
+      image: updatedItem.image,
+      name: updatedItem.name,
+      price: updatedItem.price,
+      currency: updatedItem.currency,
+      status: updatedItem.status,
+      link: updatedItem.link,
+    };
+
     updateItem(
-      { wishlistId, id: editingItemId, dto: updatedItem },
+      { wishlistId, id: editingItemId, dto },
       {
         onSuccess: () => {
           setModalMode(null);
@@ -49,16 +63,39 @@ export const useItemActions = ({ wishlistId, setModalMode }: Props) => {
 
   const handleEditItem = (id: string) => {
     setEditingItemId(id);
-    setModalMode("addItem");
+    setModalMode("editItem");
   };
 
   const handleDeleteItemWithConfirm = (id: string) => {
     setEditingItemId(id);
-    setModalMode("deleteItem");
+    setModalMode("confirmDeleteItem");
   };
 
-  const handleChangeStatus = (id: string, status: ItemStatus) => {
-    updateItem({ wishlistId, id, dto: { status } });
+  const handleClaimItem = async (id: string) => {
+    if (!session) {
+      try {
+        await signIn.anonymous();
+      } catch {
+        return;
+      }
+    }
+    claimItem({ wishlistId, id });
+  };
+
+  const handleUnclaimItem = (id: string) => {
+    unclaimItem({ wishlistId, id });
+  };
+
+  const handleResetClaim = (id: string) => {
+    updateItem({ wishlistId, id, dto: { status: "want" } });
+  };
+
+  const handleArchiveItem = (id: string) => {
+    archiveItem({ wishlistId, id });
+  };
+
+  const handleUnarchiveItem = (id: string) => {
+    unarchiveItem({ wishlistId, id });
   };
 
   return {
@@ -68,6 +105,10 @@ export const useItemActions = ({ wishlistId, setModalMode }: Props) => {
     handleDeleteItem,
     handleEditItem,
     handleDeleteItemWithConfirm,
-    handleChangeStatus,
+    handleClaimItem,
+    handleUnclaimItem,
+    handleResetClaim,
+    handleArchiveItem,
+    handleUnarchiveItem,
   };
 };

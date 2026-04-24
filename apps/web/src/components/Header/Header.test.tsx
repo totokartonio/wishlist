@@ -19,18 +19,21 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
   };
 });
 
-vi.mock("./LogOutModal", () => ({
+vi.mock("../ui/ConfirmationModal", () => ({
   default: ({
+    title,
     onClose,
-    onLogout,
+    onConfirm,
   }: {
+    title: string;
+    message: string;
     onClose: () => void;
-    onLogout: () => void;
+    onConfirm: () => void;
   }) => (
     <div>
-      <h2>Log out</h2>
+      <h2>{title}</h2>
       <button onClick={onClose}>No</button>
-      <button onClick={onLogout}>Yes</button>
+      <button onClick={onConfirm}>Yes</button>
     </div>
   ),
 }));
@@ -54,6 +57,7 @@ const mockSessionLoggedIn = {
       name: "Test User",
       email: "test@test.com",
       emailVerified: false,
+      isAnonymous: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -111,8 +115,9 @@ describe("Header", () => {
     render(<Header />);
 
     await user.click(screen.getByRole("button", { name: "Log out" }));
+
     expect(
-      screen.getByRole("heading", { name: "Log out" }),
+      screen.getByRole("heading", { name: "Log Out" }),
     ).toBeInTheDocument();
   });
 
@@ -126,13 +131,13 @@ describe("Header", () => {
 
     expect(signOut).not.toHaveBeenCalled();
     expect(
-      screen.queryByRole("heading", { name: "Log out" }),
+      screen.queryByRole("heading", { name: "Log Out" }),
     ).not.toBeInTheDocument();
   });
 
   test("modal confirm calls signOut and navigates to /login", async () => {
     vi.mocked(useSession).mockReturnValue(mockSessionLoggedIn);
-    vi.mocked(signOut).mockResolvedValue({});
+    vi.mocked(signOut).mockResolvedValue({} as never);
     const user = userEvent.setup();
     render(<Header />);
 

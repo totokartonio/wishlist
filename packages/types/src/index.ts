@@ -1,9 +1,4 @@
-export const ITEM_STATUSES = [
-  "want",
-  "bought",
-  "archived",
-  "reserved",
-] as const;
+export const ITEM_STATUSES = ["want", "claimed"] as const;
 
 export const CURRENCIES = [
   "USD",
@@ -31,14 +26,15 @@ export type Item = {
   currency: Currency | null;
   status: ItemStatus;
   link: string;
+  archived: boolean;
+  claimedByUserId: string | null;
 };
 
-export type CreateItemDto = Omit<Item, "id">;
+export type CreateItemDto = Omit<Item, "id" | "archived" | "claimedByUserId">;
 export type UpdateItemDto = Partial<CreateItemDto>;
 
-export type WishlistVisibility = "private" | "public" | "invite";
-
 export const WISHLIST_VISIBILITY = ["private", "public", "invite"] as const;
+export type WishlistVisibility = (typeof WISHLIST_VISIBILITY)[number];
 
 export type Wishlist = {
   id: string;
@@ -48,6 +44,7 @@ export type Wishlist = {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
+  hideClaimsFromOwner: boolean;
 };
 
 export type WishlistRole = "owner" | "editor" | "viewer" | null;
@@ -60,6 +57,7 @@ export type CreateWishlistDto = {
   name: string;
   description?: string;
   visibility?: WishlistVisibility;
+  hideClaimsFromOwner?: boolean;
 };
 
 export type UpdateWishlistDto = Partial<CreateWishlistDto>;
@@ -98,7 +96,10 @@ export type UserProfile = { id: string; name: string };
 
 export type ModalMode =
   | "addItem"
+  | "editItem"
   | "editWishlist"
-  | "deleteItem"
-  | "deleteWishlist"
+  | "confirmDeleteItem"
+  | "confirmDeleteWishlist"
+  | "confirmPrivate"
+  | "confirmLeave"
   | null;

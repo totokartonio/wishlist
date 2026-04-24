@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import styles from "./Header.module.css";
 import { useSession, signOut } from "../../lib/auth-client";
 import { useState } from "react";
-import LogOutModal from "./LogOutModal";
+import ConfirmationModal from "../ui/ConfirmationModal";
 import { Button } from "../ui/Button/Button";
 
 const Header = () => {
@@ -45,9 +45,11 @@ const Header = () => {
         </Button>
       </nav>
       {showModal && (
-        <LogOutModal
+        <ConfirmationModal
+          title="Log Out"
+          message="Are you sure you want to log out?"
           onClose={() => setShowModal(false)}
-          onLogout={handleLogout}
+          onConfirm={handleLogout}
         />
       )}
     </div>

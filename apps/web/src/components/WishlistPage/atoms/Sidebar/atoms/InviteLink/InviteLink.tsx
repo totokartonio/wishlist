@@ -1,6 +1,8 @@
 import styles from "./InviteLink.module.css";
 import { Button } from "../../../../../ui/Button/Button";
 import { CopyIcon } from "@phosphor-icons/react/dist/csr/Copy";
+import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
+import { useState } from "react";
 
 type Props = {
   url?: string;
@@ -8,6 +10,15 @@ type Props = {
 };
 
 const InviteLink = ({ url, onGenerate }: Props) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <section className={styles.container}>
       <h3>Invite Link</h3>
@@ -17,11 +28,15 @@ const InviteLink = ({ url, onGenerate }: Props) => {
       {url && (
         <div>
           <button
-            onClick={() => navigator.clipboard.writeText(url)}
+            onClick={handleCopy}
             className={styles.button}
             aria-label="Copy invite link"
           >
-            <CopyIcon size={16} className={styles.icon} />
+            {copied ? (
+              <CheckIcon size={16} className={styles.icon} />
+            ) : (
+              <CopyIcon size={16} className={styles.icon} />
+            )}
             <span className={styles.url}>{url}</span>
           </button>
         </div>
